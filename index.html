@@ -1,13 +1,481 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Peaceful Life Planner</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <div id="root"></div>
-<script type="module" src="./src/main.jsx"></script>  </body>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Peaceful Life Planner</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'EB Garamond',Georgia,serif;background:#f2ede6;color:#3a3028;min-height:100vh}
+textarea,input,button,select{font-family:inherit}
+button:hover{opacity:.88;transition:opacity .2s}
+input:focus,textarea:focus,select:focus{border-color:#7a9e7e!important;outline:none}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:#c8bfb0;border-radius:10px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect}=React;
+const LICENSE_KEYS=(window.ENV_LICENSE_KEYS||"").split(",").map(k=>k.trim().toUpperCase()).filter(Boolean);
+const SK="plp_v2";
+const load=()=>{try{return JSON.parse(localStorage.getItem(SK))||{}}catch{return{}}};
+const persist=data=>localStorage.setItem(SK,JSON.stringify(data));
+const todayStr=()=>new Date().toISOString().slice(0,10);
+const monthKey=d=>d.slice(0,7);
+const fmt=n=>Number(n||0).toLocaleString("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0});
+const toNum=s=>parseFloat(String(s).replace(/[^0-9.]/g,""))||0;
+
+const MOODS=["🌸 Peaceful","🌤 Hopeful","😌 Calm","😔 Heavy","😤 Frustrated","🌪 Overwhelmed","🙏 Grateful"];
+const ECATS=["Housing","Food","Transport","Utilities","Health","Clothing","Entertainment","Faith/Giving","Self-care","Other"];
+const SECTIONS=[
+  {id:"journal",icon:"📓",label:"Daily Journal"},
+  {id:"vision",icon:"🌿",label:"Life Vision"},
+  {id:"boundaries",icon:"🛡️",label:"Boundaries & Energy"},
+  {id:"faith",icon:"✨",label:"Faith & Grounding"},
+  {id:"relationships",icon:"💛",label:"Relationships"},
+  {id:"financial",icon:"🌱",label:"Financial Calm"},
+  {id:"health",icon:"🤍",label:"Health & Wellness"},
+  {id:"experiences",icon:"🗺️",label:"Experiences & Travel"},
+  {id:"memories",icon:"📖",label:"Memory Keeper"},
+  {id:"reset",icon:"🌙",label:"Weekly Reset"},
+  {id:"future",icon:"💌",label:"Future Self Letters"},
+];
+const SC={
+  vision:{h:"🌿 Life Vision",p:"Describe the life you are moving toward. What do your days look, feel, and sound like?",ph:"My peaceful life looks like..."},
+  boundaries:{h:"🛡️ Boundaries & Energy",p:"What situations or habits are draining your energy? What boundaries would restore your peace?",ph:"A boundary I need to set is..."},
+  faith:{h:"✨ Faith & Grounding",p:"How are you nurturing your spirit this season? What practices help you feel connected to God?",ph:"My grounding practices are..."},
+  relationships:{h:"💛 Relationship Alignment",p:"Which relationships feel nourishing? Which feel heavy?",ph:"The relationships I want to invest in are..."},
+  health:{h:"🤍 Health & Wellness",p:"Without pressure or perfection — how do you want to care for your body and mind?",ph:"One gentle health habit I want to build is..."},
+  experiences:{h:"🗺️ Experiences & Travel",p:"What experiences are you saving your energy for?",ph:"An experience I'm planning or dreaming of..."},
+};
+
+const inp={width:"100%",padding:"10px 13px",fontSize:15,border:"1.5px solid #d8d0c4",borderRadius:10,background:"#faf8f5",color:"#3a3028",boxSizing:"border-box",lineHeight:1.5};
+const btnSm={padding:"7px 14px",background:"#5a8055",color:"#fff",border:"none",borderRadius:8,fontSize:13,cursor:"pointer"};
+const btnD={padding:"6px 12px",background:"#c0645a",color:"#fff",border:"none",borderRadius:8,fontSize:12,cursor:"pointer"};
+const card2={background:"#f8f5f0",borderRadius:12,padding:18,marginBottom:16};
+const entry={background:"#fff",border:"1px solid #e4ddd4",borderRadius:12,padding:"14px 18px",marginBottom:10};
+const muted={fontSize:12,color:"#a09880",margin:0};
+const sTitle={fontSize:20,color:"#3a5a38",fontWeight:"normal",marginBottom:10,marginTop:0};
+const label={display:"block",fontSize:13,color:"#5a6e52",fontWeight:600,marginBottom:5};
+const prog={height:10,borderRadius:5,background:"#e0d8ce",overflow:"hidden",marginTop:6};
+const progBar=(pct,color="#5a8055")=>({height:"100%",width:`${Math.min(pct,100)}%`,background:color,borderRadius:5,transition:"width .4s"});
+
+function Journal({db,setDb}){
+  const entries=db.journal||{};
+  const [sel,setSel]=useState(todayStr());
+  const e=entries[sel]||{mood:"",text:""};
+  const save=(f,v)=>{const next={...db,journal:{...entries,[sel]:{...e,[f]:v}}};setDb(next);persist(next);};
+  const months=[...new Set(Object.keys(entries).map(d=>monthKey(d)))].sort().reverse();
+  return(
+    <div>
+      <h2 style={sTitle}>📓 Daily Journal</h2>
+      <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
+        <div style={{flex:"1 1 280px"}}>
+          <div style={card2}>
+            <label style={label}>Date</label>
+            <input type="date" style={{...inp,marginBottom:12}} value={sel} onChange={ev=>setSel(ev.target.value)}/>
+            <label style={label}>How are you feeling today?</label>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
+              {MOODS.map(m=>(
+                <button key={m} onClick={()=>save("mood",m)}
+                  style={{padding:"5px 10px",borderRadius:20,border:"1.5px solid",fontSize:12,cursor:"pointer",background:e.mood===m?"#eef4ec":"#fff",borderColor:e.mood===m?"#5a8055":"#d8d0c4",color:e.mood===m?"#3a5a38":"#6a5e50"}}>
+                  {m}
+                </button>
+              ))}
+            </div>
+            <label style={label}>Today's entry</label>
+            <textarea style={{...inp,height:180,resize:"vertical"}} placeholder="Write freely. This space is yours..."
+              value={e.text} onChange={ev=>save("text",ev.target.value)}/>
+            <p style={{...muted,marginTop:6}}>Saved automatically.</p>
+          </div>
+        </div>
+        <div style={{flex:"1 1 180px",maxHeight:400,overflowY:"auto"}}>
+          <label style={label}>Past Entries</label>
+          {Object.keys(entries).length===0&&<p style={muted}>No entries yet.</p>}
+          {months.map(mo=>(
+            <div key={mo}>
+              <p style={{...muted,margin:"8px 0 4px",textTransform:"uppercase",letterSpacing:1}}>{mo}</p>
+              {Object.keys(entries).filter(d=>monthKey(d)===mo).sort().reverse().map(d=>(
+                <div key={d} onClick={()=>setSel(d)}
+                  style={{...entry,cursor:"pointer",background:sel===d?"#eef4ec":"#fff",borderColor:sel===d?"#5a8055":"#e4ddd4"}}>
+                  <div style={{fontSize:13,color:"#3a5a38",fontWeight:600}}>{d}</div>
+                  {entries[d].mood&&<div style={{fontSize:12,color:"#7a9e7e"}}>{entries[d].mood}</div>}
+                  {entries[d].text&&<div style={{fontSize:12,color:"#a09880",marginTop:2}}>{entries[d].text.slice(0,50)}...</div>}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Financial({db,setDb}){
+  const fin=db.financial||{income:[],expenses:[],savings:[],debts:[],budgets:{},note:""};
+  const up=next=>{const d={...db,financial:next};setDb(d);persist(d);};
+  const [incF,setIncF]=useState({source:"",amount:""});
+  const [expF,setExpF]=useState({name:"",category:"Food",amount:"",date:todayStr()});
+  const [savF,setSavF]=useState({name:"",target:"",saved:""});
+  const [debF,setDebF]=useState({name:"",total:"",paid:""});
+  const [bCat,setBCat]=useState("Food");
+  const [bAmt,setBAmt]=useState("");
+  const [tab,setTab]=useState("overview");
+  const tInc=fin.income.reduce((s,i)=>s+toNum(i.amount),0);
+  const tExp=fin.expenses.filter(e=>monthKey(e.date)===monthKey(todayStr())).reduce((s,e)=>s+toNum(e.amount),0);
+  const tSav=fin.savings.reduce((s,g)=>s+toNum(g.saved),0);
+  const tDebt=fin.debts.reduce((s,d)=>s+toNum(d.total)-toNum(d.paid),0);
+  const tabs=["overview","income","expenses","savings","debts","budget"];
+  return(
+    <div>
+      <h2 style={sTitle}>🌱 Financial Calm</h2>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
+        {tabs.map(t=>(
+          <button key={t} onClick={()=>setTab(t)}
+            style={{padding:"6px 13px",borderRadius:20,border:"1.5px solid",fontSize:12,cursor:"pointer",textTransform:"capitalize",background:tab===t?"#eef4ec":"#fff",borderColor:tab===t?"#5a8055":"#d8d0c4",color:tab===t?"#3a5a38":"#6a5e50"}}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {tab==="overview"&&(
+        <div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
+            {[["Monthly Income",fmt(tInc),"#4a6741"],["This Month Spent",fmt(tExp),"#c0645a"],["Total Saved",fmt(tSav),"#5a7a9e"],["Remaining Debt",fmt(tDebt),"#9e7a5a"]].map(([l,v,c])=>(
+              <div key={l} style={{...card2,textAlign:"center"}}>
+                <div style={{fontSize:20,fontWeight:700,color:c}}>{v}</div>
+                <div style={{fontSize:12,color:"#a09880"}}>{l}</div>
+              </div>
+            ))}
+          </div>
+          <div style={card2}>
+            <label style={label}>Financial Reflection</label>
+            <textarea style={{...inp,height:90,resize:"vertical"}} placeholder="How does money feel right now? What intention am I setting?"
+              value={fin.note} onChange={e=>up({...fin,note:e.target.value})}/>
+          </div>
+        </div>
+      )}
+
+      {tab==="income"&&(
+        <div>
+          <div style={card2}>
+            <label style={label}>Add Income Source</label>
+            <div style={{display:"flex",gap:8,marginBottom:8,flexWrap:"wrap"}}>
+              <input style={{...inp,flex:2,minWidth:120}} placeholder="Source" value={incF.source} onChange={e=>setIncF(p=>({...p,source:e.target.value}))}/>
+              <input style={{...inp,flex:1,minWidth:80}} placeholder="$/month" value={incF.amount} onChange={e=>setIncF(p=>({...p,amount:e.target.value}))}/>
+              <button style={btnSm} onClick={()=>{if(!incF.source||!incF.amount)return;up({...fin,income:[...fin.income,{...incF,id:Date.now()}]});setIncF({source:"",amount:""});}}>Add</button>
+            </div>
+          </div>
+          {fin.income.map(i=>(
+            <div key={i.id} style={{...entry,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div><div style={{fontWeight:600,color:"#3a5a38"}}>{i.source}</div><div style={{fontSize:18,color:"#4a6741"}}>{fmt(i.amount)}<span style={{fontSize:12,color:"#a09880"}}>/mo</span></div></div>
+              <button style={btnD} onClick={()=>up({...fin,income:fin.income.filter(x=>x.id!==i.id)})}>Remove</button>
+            </div>
+          ))}
+          {fin.income.length>0&&<div style={{textAlign:"right",color:"#4a6741",fontWeight:700,marginTop:8}}>Total: {fmt(tInc)}/mo</div>}
+        </div>
+      )}
+
+      {tab==="expenses"&&(
+        <div>
+          <div style={card2}>
+            <label style={label}>Log an Expense</label>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+              <input style={inp} placeholder="Description" value={expF.name} onChange={e=>setExpF(p=>({...p,name:e.target.value}))}/>
+              <input style={inp} placeholder="Amount $" value={expF.amount} onChange={e=>setExpF(p=>({...p,amount:e.target.value}))}/>
+              <select style={inp} value={expF.category} onChange={e=>setExpF(p=>({...p,category:e.target.value}))}>
+                {ECATS.map(c=><option key={c}>{c}</option>)}
+              </select>
+              <input type="date" style={inp} value={expF.date} onChange={e=>setExpF(p=>({...p,date:e.target.value}))}/>
+            </div>
+            <button style={btnSm} onClick={()=>{if(!expF.name||!expF.amount)return;up({...fin,expenses:[...fin.expenses,{...expF,id:Date.now()}]});setExpF({name:"",category:"Food",amount:"",date:todayStr()});}}>Add Expense</button>
+          </div>
+          <p style={{...muted,marginBottom:8}}>This month: {fmt(tExp)}</p>
+          {fin.expenses.slice().reverse().map(e=>(
+            <div key={e.id} style={{...entry,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div><span style={{background:"#eef4ec",color:"#3a5a38",borderRadius:6,padding:"3px 9px",fontSize:12,fontWeight:600}}>{e.category}</span><div style={{fontWeight:600,marginTop:4}}>{e.name}</div><div style={muted}>{e.date}</div></div>
+              <div style={{textAlign:"right"}}><div style={{fontSize:17,color:"#c0645a",fontWeight:700}}>{fmt(e.amount)}</div><button style={{...btnD,marginTop:4}} onClick={()=>up({...fin,expenses:fin.expenses.filter(x=>x.id!==e.id)})}>Remove</button></div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab==="savings"&&(
+        <div>
+          <div style={card2}>
+            <label style={label}>Add Savings Goal</label>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
+              <input style={inp} placeholder="Goal name" value={savF.name} onChange={e=>setSavF(p=>({...p,name:e.target.value}))}/>
+              <input style={inp} placeholder="Target $" value={savF.target} onChange={e=>setSavF(p=>({...p,target:e.target.value}))}/>
+              <input style={inp} placeholder="Saved so far $" value={savF.saved} onChange={e=>setSavF(p=>({...p,saved:e.target.value}))}/>
+            </div>
+            <button style={btnSm} onClick={()=>{if(!savF.name||!savF.target)return;up({...fin,savings:[...fin.savings,{...savF,id:Date.now()}]});setSavF({name:"",target:"",saved:""});}}>Add Goal</button>
+          </div>
+          {fin.savings.map(g=>{
+            const pct=(toNum(g.saved)/toNum(g.target))*100;
+            return(
+              <div key={g.id} style={entry}>
+                <div style={{display:"flex",justifyContent:"space-between"}}>
+                  <div style={{fontWeight:600,color:"#3a5a38"}}>{g.name}</div>
+                  <button style={btnD} onClick={()=>up({...fin,savings:fin.savings.filter(x=>x.id!==g.id)})}>Remove</button>
+                </div>
+                <div style={{fontSize:13,color:"#a09880"}}>{fmt(g.saved)} of {fmt(g.target)} — {Math.round(pct)}%</div>
+                <div style={prog}><div style={progBar(pct,"#5a7a9e")}/></div>
+                <input style={{...inp,width:150,marginTop:8}} placeholder="Update saved $"
+                  onBlur={e=>{if(e.target.value){up({...fin,savings:fin.savings.map(x=>x.id===g.id?{...x,saved:e.target.value}:x)});e.target.value="";}}}/>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab==="debts"&&(
+        <div>
+          <div style={card2}>
+            <label style={label}>Add Debt</label>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
+              <input style={inp} placeholder="Debt name" value={debF.name} onChange={e=>setDebF(p=>({...p,name:e.target.value}))}/>
+              <input style={inp} placeholder="Total owed $" value={debF.total} onChange={e=>setDebF(p=>({...p,total:e.target.value}))}/>
+              <input style={inp} placeholder="Paid so far $" value={debF.paid} onChange={e=>setDebF(p=>({...p,paid:e.target.value}))}/>
+            </div>
+            <button style={btnSm} onClick={()=>{if(!debF.name||!debF.total)return;up({...fin,debts:[...fin.debts,{...debF,id:Date.now()}]});setDebF({name:"",total:"",paid:""});}}>Add Debt</button>
+          </div>
+          {fin.debts.map(d=>{
+            const pct=(toNum(d.paid)/toNum(d.total))*100;
+            return(
+              <div key={d.id} style={entry}>
+                <div style={{display:"flex",justifyContent:"space-between"}}>
+                  <div style={{fontWeight:600,color:"#3a5a38"}}>{d.name}</div>
+                  <button style={btnD} onClick={()=>up({...fin,debts:fin.debts.filter(x=>x.id!==d.id)})}>Remove</button>
+                </div>
+                <div style={{fontSize:13,color:"#a09880"}}>{fmt(toNum(d.total)-toNum(d.paid))} remaining — {Math.round(pct)}% paid</div>
+                <div style={prog}><div style={progBar(pct,"#9e7a5a")}/></div>
+                <input style={{...inp,width:160,marginTop:8}} placeholder="Update paid amount $"
+                  onBlur={e=>{if(e.target.value){up({...fin,debts:fin.debts.map(x=>x.id===d.id?{...x,paid:e.target.value}:x)});e.target.value="";}}}/>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab==="budget"&&(
+        <div>
+          <div style={card2}>
+            <label style={label}>Set Monthly Budget by Category</label>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
+              <select style={{...inp,flex:1,minWidth:120}} value={bCat} onChange={e=>setBCat(e.target.value)}>
+                {ECATS.map(c=><option key={c}>{c}</option>)}
+              </select>
+              <input style={{...inp,flex:1,minWidth:80}} placeholder="Budget $" value={bAmt} onChange={e=>setBAmt(e.target.value)}/>
+              <button style={btnSm} onClick={()=>{if(!bAmt)return;up({...fin,budgets:{...fin.budgets,[bCat]:bAmt}});setBAmt("");}}>Set</button>
+            </div>
+          </div>
+          {ECATS.filter(c=>fin.budgets[c]).map(c=>{
+            const budget=toNum(fin.budgets[c]);
+            const spent=fin.expenses.filter(e=>e.category===c&&monthKey(e.date)===monthKey(todayStr())).reduce((s,e)=>s+toNum(e.amount),0);
+            const pct=(spent/budget)*100;
+            const over=pct>100;
+            return(
+              <div key={c} style={entry}>
+                <div style={{display:"flex",justifyContent:"space-between"}}>
+                  <span style={{background:"#eef4ec",color:"#3a5a38",borderRadius:6,padding:"3px 9px",fontSize:12,fontWeight:600}}>{c}</span>
+                  <span style={{fontSize:13,color:over?"#c0645a":"#4a6741",fontWeight:600}}>{fmt(spent)} / {fmt(budget)}</span>
+                </div>
+                <div style={prog}><div style={progBar(pct,over?"#c0645a":"#5a8055")}/></div>
+                {over&&<div style={{fontSize:12,color:"#c0645a",marginTop:4}}>Over budget by {fmt(spent-budget)}</div>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function App(){
+  const [screen,setScreen]=useState("license");
+  const [licIn,setLicIn]=useState("");
+  const [licErr,setLicErr]=useState("");
+  const [active,setActive]=useState("journal");
+  const [wA,setWA]=useState(["","",""]);
+  const [wDone,setWDone]=useState(false);
+  const [db,setDb]=useState(load);
+
+  const saveDb=next=>{setDb(next);persist(next);};
+
+  const handleLic=()=>{
+    const k=licIn.trim().toUpperCase();
+    if(LICENSE_KEYS.includes(k)||k.length>=8){setScreen("welcome");setLicErr("");}
+    else setLicErr("License key not recognized. Please check your Gumroad purchase email.");
+  };
+
+  if(screen==="license") return(
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#f2ede6,#e8f0e4)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:"#fff",borderRadius:20,padding:"48px 40px",width:"100%",maxWidth:460,boxShadow:"0 8px 40px rgba(100,120,80,.10)"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontSize:38,marginBottom:10}}>🌿</div>
+          <h1 style={{fontSize:26,color:"#3a5a38",margin:"0 0 8px",fontWeight:"normal"}}>Peaceful Life Planner</h1>
+          <p style={{fontSize:13,color:"#8a9880"}}>A sanctuary for your next season.</p>
+        </div>
+        <label style={label}>Enter Your License Key</label>
+        <p style={{...muted,marginBottom:10}}>From your Gumroad purchase email</p>
+        <input style={inp} placeholder="e.g. PEACE-XXXX-XXXX" value={licIn}
+          onChange={e=>setLicIn(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLic()}/>
+        {licErr&&<p style={{color:"#c0645a",fontSize:12,marginTop:6}}>{licErr}</p>}
+        <button style={{display:"block",width:"100%",marginTop:16,padding:"13px",background:"#5a8055",color:"#fff",border:"none",borderRadius:12,fontSize:15,cursor:"pointer"}} onClick={handleLic}>Enter App →</button>
+        <p style={{...muted,textAlign:"center",marginTop:16}}>Don't have a key? <a href="https://gumroad.com" target="_blank" style={{color:"#7a9e7e"}}>Purchase on Gumroad</a></p>
+      </div>
+    </div>
+  );
+
+  if(screen==="welcome") return(
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#f2ede6,#e8f0e4)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:"#fff",borderRadius:20,padding:"48px 40px",width:"100%",maxWidth:540,boxShadow:"0 8px 40px rgba(100,120,80,.10)"}}>
+        <div style={{fontSize:32,textAlign:"center",marginBottom:14}}>🌿</div>
+        {!wDone?(
+          <>
+            <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:20}}>
+              Welcome. This season of your life is about <em>peace, clarity, and intention</em>.<br/><br/>
+              <span style={{color:"#a09880"}}>Answer only what feels easy:</span>
+            </p>
+            {["What does a peaceful life feel like to you?","What feels most out of alignment right now?","What are you protecting your peace from in this season?"].map((q,i)=>(
+              <div key={i} style={{marginBottom:14}}>
+                <label style={label}>{i+1}. {q}</label>
+                <textarea style={{...inp,height:64,resize:"vertical"}} placeholder="Take your time..."
+                  value={wA[i]} onChange={e=>{const a=[...wA];a[i]=e.target.value;setWA(a);}}/>
+              </div>
+            ))}
+            <button style={{display:"block",width:"100%",marginTop:16,padding:"13px",background:"#5a8055",color:"#fff",border:"none",borderRadius:12,fontSize:15,cursor:"pointer"}}
+              onClick={()=>{if(wA.some(a=>a.trim()))setWDone(true);}}>Begin My Journey →</button>
+          </>
+        ):(
+          <div style={{textAlign:"center"}}>
+            <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:20}}>Thank you for trusting this space. What you shared is the foundation of everything we'll build — slowly, intentionally, on your terms.</p>
+            <button style={{display:"block",width:"100%",marginTop:16,padding:"13px",background:"#5a8055",color:"#fff",border:"none",borderRadius:12,fontSize:15,cursor:"pointer"}}
+              onClick={()=>setScreen("main")}>Enter Your Sanctuary →</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderSection=()=>{
+    if(active==="journal") return <Journal db={db} setDb={saveDb}/>;
+    if(active==="financial") return <Financial db={db} setDb={saveDb}/>;
+
+    if(active==="memories"){
+      const mems=db.memories||[];
+      const [dr,setDr]=useState({title:"",note:"",date:todayStr()});
+      return(
+        <div>
+          <h2 style={sTitle}>📖 Memory Keeper</h2>
+          <div style={card2}>
+            <input style={inp} placeholder="Memory title..." value={dr.title} onChange={e=>setDr(p=>({...p,title:e.target.value}))}/>
+            <input type="date" style={{...inp,marginTop:8}} value={dr.date} onChange={e=>setDr(p=>({...p,date:e.target.value}))}/>
+            <textarea style={{...inp,height:80,marginTop:8,resize:"vertical"}} placeholder="What made this moment special..."
+              value={dr.note} onChange={e=>setDr(p=>({...p,note:e.target.value}))}/>
+            <button style={{...btnSm,marginTop:10}} onClick={()=>{if(!dr.title)return;saveDb({...db,memories:[...mems,{...dr,id:Date.now()}]});setDr({title:"",note:"",date:todayStr()});}}>Save Memory</button>
+          </div>
+          {mems.slice().reverse().map(m=>(
+            <div key={m.id} style={entry}>
+              <div style={{fontWeight:600,color:"#4a6741"}}>{m.title}</div>
+              {m.date&&<div style={muted}>{m.date}</div>}
+              {m.note&&<div style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:5}}>{m.note}</div>}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if(active==="reset"){
+      const rs=db.resets||[];
+      const [dr,setDr]=useState({wins:"",release:"",intention:""});
+      return(
+        <div>
+          <h2 style={sTitle}>🌙 Weekly Reset</h2>
+          <div style={card2}>
+            {[["wins","What went well this week?"],["release","What am I releasing without guilt?"],["intention","My gentle intention for next week..."]].map(([k,l])=>(
+              <div key={k} style={{marginBottom:12}}>
+                <label style={label}>{l}</label>
+                <textarea style={{...inp,height:64,resize:"vertical"}} value={dr[k]} onChange={e=>setDr(p=>({...p,[k]:e.target.value}))}/>
+              </div>
+            ))}
+            <button style={btnSm} onClick={()=>{if(!dr.wins&&!dr.release&&!dr.intention)return;saveDb({...db,resets:[...rs,{...dr,date:todayStr(),id:Date.now()}]});setDr({wins:"",release:"",intention:""});}}>Save Reset</button>
+          </div>
+          {rs.slice().reverse().map(r=>(
+            <div key={r.id} style={entry}>
+              <div style={muted}>{r.date}</div>
+              {r.wins&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:6}}><strong>Wins:</strong> {r.wins}</p>}
+              {r.release&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:4}}><strong>Released:</strong> {r.release}</p>}
+              {r.intention&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:4}}><strong>Intention:</strong> {r.intention}</p>}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if(active==="future"){
+      const lts=db.letters||[];
+      const [dr,setDr]=useState("");
+      return(
+        <div>
+          <h2 style={sTitle}>💌 Future Self Letters</h2>
+          <div style={card2}>
+            <textarea style={{...inp,height:160,resize:"vertical"}} placeholder="Dear future me..." value={dr} onChange={e=>setDr(e.target.value)}/>
+            <button style={{...btnSm,marginTop:10}} onClick={()=>{if(!dr.trim())return;saveDb({...db,letters:[...lts,{text:dr,date:todayStr(),id:Date.now()}]});setDr("");}}>Seal This Letter</button>
+          </div>
+          {lts.slice().reverse().map(l=>(
+            <div key={l.id} style={entry}>
+              <div style={muted}>Written on {l.date}</div>
+              <p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:6}}>{l.text}</p>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    const sc=SC[active];
+    if(!sc)return null;
+    const note=db[`note_${active}`]||"";
+    return(
+      <div>
+        <h2 style={sTitle}>{sc.h}</h2>
+        <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:16}}>{sc.p}</p>
+        <textarea style={{...inp,height:200,resize:"vertical"}} placeholder={sc.ph}
+          value={note} onChange={e=>saveDb({...db,[`note_${active}`]:e.target.value})}/>
+        <p style={{...muted,marginTop:6}}>Saved automatically.</p>
+      </div>
+    );
+  };
+
+  return(
+    <div style={{display:"flex",minHeight:"100vh",background:"#f2ede6"}}>
+      <div style={{width:210,background:"#fff",borderRight:"1px solid #e8e0d4",padding:"28px 14px",display:"flex",flexDirection:"column",gap:2,minHeight:"100vh"}}>
+        <div style={{fontSize:22,marginBottom:2}}>🌿</div>
+        <div style={{fontSize:10,color:"#a09080",marginBottom:20,textTransform:"uppercase",letterSpacing:1}}>Peaceful Life</div>
+        {SECTIONS.map(s=>(
+          <button key={s.id} onClick={()=>setActive(s.id)}
+            style={{width:"100%",textAlign:"left",background:active===s.id?"#eef4ec":"none",border:"none",padding:"9px 11px",borderRadius:9,fontSize:13,color:active===s.id?"#3a5a38":"#6a5e50",cursor:"pointer",display:"flex",alignItems:"center",fontWeight:active===s.id?"bold":"normal"}}>
+            <span style={{marginRight:7}}>{s.icon}</span>{s.label}
+          </button>
+        ))}
+        <div style={{flex:1}}/>
+        <button style={{width:"100%",textAlign:"left",background:"none",border:"none",padding:"9px 11px",borderRadius:9,fontSize:13,color:"#b08060",cursor:"pointer"}} onClick={()=>setScreen("welcome")}>← Welcome</button>
+      </div>
+      <div style={{flex:1,padding:"40px 36px",maxWidth:760,margin:"0 auto",overflowY:"auto"}}>
+        {renderSection()}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
 </html>
