@@ -21,25 +21,66 @@ input:focus,textarea:focus,select:focus{border-color:#7a9e7e!important;outline:n
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect}=React;
-const LICENSE_KEYS=(window.ENV_LICENSE_KEYS||"").split(",").map(k=>k.trim().toUpperCase()).filter(Boolean);
-const SK="plp_v2";
-const load=()=>{try{return JSON.parse(localStorage.getItem(SK))||{}}catch{return{}}};
-const persist=data=>localStorage.setItem(SK,JSON.stringify(data));
+const {useState,useEffect,useRef}=React;
+
+// ── Storage ──────────────────────────────────────────────
+const SK="plp_v3";
+const loadDb=()=>{try{return JSON.parse(localStorage.getItem(SK))||{}}catch{return{}}};
+const saveDb=d=>localStorage.setItem(SK,JSON.stringify(d));
 const todayStr=()=>new Date().toISOString().slice(0,10);
 const monthKey=d=>d.slice(0,7);
 const fmt=n=>Number(n||0).toLocaleString("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0});
 const toNum=s=>parseFloat(String(s).replace(/[^0-9.]/g,""))||0;
 
+// ── License ───────────────────────────────────────────────
+const LICENSE_KEYS=(window.VITE_LICENSE_KEYS||"").split(",").map(k=>k.trim().toUpperCase()).filter(Boolean);
+
+// ── Constants ─────────────────────────────────────────────
 const MOODS=["🌸 Peaceful","🌤 Hopeful","😌 Calm","😔 Heavy","😤 Frustrated","🌪 Overwhelmed","🙏 Grateful"];
 const ECATS=["Housing","Food","Transport","Utilities","Health","Clothing","Entertainment","Faith/Giving","Self-care","Other"];
+const WHEEL_AREAS=["Faith & Spirit","Health & Body","Mind & Growth","Relationships","Finances","Career & Purpose","Joy & Play","Home & Environment"];
+const WISDOM=[
+  "Peace is not the absence of chaos — it is your presence within it.",
+  "You are not behind. You are exactly where your journey requires.",
+  "Rest is not a reward. It is a right.",
+  "Boundaries are not walls — they are the doors you choose to open.",
+  "The version of you God is growing doesn't need to be rushed.",
+  "Small steps taken with intention outrun urgent steps taken in fear.",
+  "You are allowed to want a quiet, beautiful life.",
+  "Healing is not linear. Neither is becoming.",
+  "What you protect your time for reveals what you truly value.",
+  "Alignment feels like exhaling. Seek more of that.",
+  "You don't have to earn your peace. It was always yours.",
+  "Every season serves you — even the difficult ones.",
+  "Clarity comes not from thinking harder, but from becoming still.",
+  "The life you want is built in ordinary moments done with love.",
+  "Let go of who you were to make room for who you're becoming.",
+];
+const CHALLENGES=[
+  {id:1,title:"Morning Stillness",desc:"Spend 10 minutes in silence each morning before reaching for your phone.",icon:"🌅"},
+  {id:2,title:"Gratitude Depth",desc:"Write 3 things you're grateful for — but explain WHY each one matters.",icon:"🙏"},
+  {id:3,title:"One Boundary a Day",desc:"Practice saying no to one thing that doesn't align with your peace.",icon:"🛡️"},
+  {id:4,title:"Digital Sunset",desc:"Put your phone away 1 hour before bed. Replace it with something nourishing.",icon:"🌙"},
+  {id:5,title:"Body Check-In",desc:"Pause twice a day and ask your body: what do you need right now?",icon:"🤍"},
+  {id:6,title:"Forgiveness Walk",desc:"On your daily walk, mentally release one person or situation each day.",icon:"🌿"},
+  {id:7,title:"Money Awareness",desc:"Track every dollar you spend — not to judge, but to understand.",icon:"🌱"},
+  {id:8,title:"Connection Reach",desc:"Send one genuine message of love or appreciation to someone each day.",icon:"💛"},
+  {id:9,title:"Dream Journaling",desc:"Each morning, write down what you remember from your dreams or your first waking thought.",icon:"📓"},
+  {id:10,title:"Declutter Your Space",desc:"Remove one item each day that no longer serves your next chapter.",icon:"✨"},
+];
+const AUDIT_AREAS=["Faith & Spirit","Mental Health","Physical Health","Relationships","Finances","Career & Purpose","Home & Environment","Joy & Rest"];
 const SECTIONS=[
+  {id:"intention",icon:"🌅",label:"Daily Intention"},
   {id:"journal",icon:"📓",label:"Daily Journal"},
+  {id:"reframe",icon:"🔄",label:"Mindset Reframe"},
+  {id:"wheel",icon:"🎯",label:"Life Wheel"},
+  {id:"audit",icon:"📋",label:"Monthly Audit"},
+  {id:"challenges",icon:"🌱",label:"30-Day Challenges"},
   {id:"vision",icon:"🌿",label:"Life Vision"},
   {id:"boundaries",icon:"🛡️",label:"Boundaries & Energy"},
   {id:"faith",icon:"✨",label:"Faith & Grounding"},
   {id:"relationships",icon:"💛",label:"Relationships"},
-  {id:"financial",icon:"🌱",label:"Financial Calm"},
+  {id:"financial",icon:"💰",label:"Financial Calm"},
   {id:"health",icon:"🤍",label:"Health & Wellness"},
   {id:"experiences",icon:"🗺️",label:"Experiences & Travel"},
   {id:"memories",icon:"📖",label:"Memory Keeper"},
@@ -52,35 +93,103 @@ const SC={
   faith:{h:"✨ Faith & Grounding",p:"How are you nurturing your spirit this season? What practices help you feel connected to God?",ph:"My grounding practices are..."},
   relationships:{h:"💛 Relationship Alignment",p:"Which relationships feel nourishing? Which feel heavy?",ph:"The relationships I want to invest in are..."},
   health:{h:"🤍 Health & Wellness",p:"Without pressure or perfection — how do you want to care for your body and mind?",ph:"One gentle health habit I want to build is..."},
-  experiences:{h:"🗺️ Experiences & Travel",p:"What experiences are you saving your energy for?",ph:"An experience I'm planning or dreaming of..."},
+  experiences:{h:"🗺️ Experiences & Travel",p:"What experiences are you saving your energy for? A trip, a moment, a gathering?",ph:"An experience I'm planning or dreaming of..."},
 };
 
+// ── Styles ────────────────────────────────────────────────
 const inp={width:"100%",padding:"10px 13px",fontSize:15,border:"1.5px solid #d8d0c4",borderRadius:10,background:"#faf8f5",color:"#3a3028",boxSizing:"border-box",lineHeight:1.5};
-const btnSm={padding:"7px 14px",background:"#5a8055",color:"#fff",border:"none",borderRadius:8,fontSize:13,cursor:"pointer"};
+const btnSm={padding:"8px 16px",background:"#5a8055",color:"#fff",border:"none",borderRadius:8,fontSize:13,cursor:"pointer"};
 const btnD={padding:"6px 12px",background:"#c0645a",color:"#fff",border:"none",borderRadius:8,fontSize:12,cursor:"pointer"};
 const card2={background:"#f8f5f0",borderRadius:12,padding:18,marginBottom:16};
-const entry={background:"#fff",border:"1px solid #e4ddd4",borderRadius:12,padding:"14px 18px",marginBottom:10};
-const muted={fontSize:12,color:"#a09880",margin:0};
-const sTitle={fontSize:20,color:"#3a5a38",fontWeight:"normal",marginBottom:10,marginTop:0};
-const label={display:"block",fontSize:13,color:"#5a6e52",fontWeight:600,marginBottom:5};
+const entryBox={background:"#fff",border:"1px solid #e4ddd4",borderRadius:12,padding:"14px 18px",marginBottom:10};
+const mu={fontSize:12,color:"#a09880",margin:0};
+const sT={fontSize:20,color:"#3a5a38",fontWeight:"normal",marginBottom:10,marginTop:0};
+const lbl={display:"block",fontSize:13,color:"#5a6e52",fontWeight:600,marginBottom:5};
 const prog={height:10,borderRadius:5,background:"#e0d8ce",overflow:"hidden",marginTop:6};
-const progBar=(pct,color="#5a8055")=>({height:"100%",width:`${Math.min(pct,100)}%`,background:color,borderRadius:5,transition:"width .4s"});
+const pBar=(pct,color="#5a8055")=>({height:"100%",width:`${Math.min(pct,100)}%`,background:color,borderRadius:5,transition:"width .4s"});
 
+// ── AI Call ───────────────────────────────────────────────
+async function askClaude(systemPrompt, userMsg){
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:1000,
+        system:systemPrompt,
+        messages:[{role:"user",content:userMsg}]
+      })
+    });
+    const data=await res.json();
+    return data.content?.[0]?.text||"I'm here with you. Take a breath.";
+  }catch{
+    return "I'm here with you. Take a breath and try again.";
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// SECTION COMPONENTS
+// ══════════════════════════════════════════════════════════
+
+// ── Daily Intention ───────────────────────────────────────
+function Intention({db,setDb}){
+  const today=todayStr();
+  const data=db.intentions||{};
+  const d=data[today]||{word:"",focus:"",done:false};
+  const dayIdx=new Date().getDay()+new Date().getDate();
+  const quote=WISDOM[dayIdx%WISDOM.length];
+  const save=(f,v)=>{const next={...db,intentions:{...data,[today]:{...d,[f]:v}}};setDb(next);saveDb(next);};
+  return(
+    <div>
+      <h2 style={sT}>🌅 Daily Intention</h2>
+      <div style={{...card2,borderLeft:"4px solid #7a9e7e",background:"#f0f5ee"}}>
+        <p style={{fontSize:13,color:"#5a6e52",fontStyle:"italic",marginBottom:4}}>Today's Wisdom</p>
+        <p style={{fontSize:16,color:"#3a5a38",lineHeight:1.7}}>"{quote}"</p>
+      </div>
+      <div style={card2}>
+        <label style={lbl}>Your one word for today</label>
+        <input style={inp} placeholder="e.g. Grounded, Open, Brave, Still..." value={d.word}
+          onChange={e=>save("word",e.target.value)}/>
+        <label style={{...lbl,marginTop:14}}>What is your gentle focus today?</label>
+        <textarea style={{...inp,height:90,resize:"vertical",marginBottom:10}}
+          placeholder="Today I will focus on..."
+          value={d.focus} onChange={e=>save("focus",e.target.value)}/>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <input type="checkbox" id="done" checked={d.done} onChange={e=>save("done",e.target.checked)}
+            style={{width:18,height:18,cursor:"pointer"}}/>
+          <label htmlFor="done" style={{fontSize:14,color:"#5a6e52",cursor:"pointer"}}>I showed up for myself today</label>
+        </div>
+      </div>
+      <div style={{...card2,background:"#faf0e8"}}>
+        <p style={{fontSize:13,color:"#9e7a5a",fontWeight:600,marginBottom:8}}>🌿 Evening Reflection</p>
+        <label style={lbl}>One thing I'm grateful for today</label>
+        <input style={inp} placeholder="I'm grateful for..."
+          value={d.grateful||""} onChange={e=>save("grateful",e.target.value)}/>
+        <label style={{...lbl,marginTop:12}}>One thing I'm releasing</label>
+        <input style={inp} placeholder="I'm releasing..."
+          value={d.releasing||""} onChange={e=>save("releasing",e.target.value)}/>
+      </div>
+    </div>
+  );
+}
+
+// ── Journal ───────────────────────────────────────────────
 function Journal({db,setDb}){
   const entries=db.journal||{};
   const [sel,setSel]=useState(todayStr());
   const e=entries[sel]||{mood:"",text:""};
-  const save=(f,v)=>{const next={...db,journal:{...entries,[sel]:{...e,[f]:v}}};setDb(next);persist(next);};
+  const save=(f,v)=>{const next={...db,journal:{...entries,[sel]:{...e,[f]:v}}};setDb(next);saveDb(next);};
   const months=[...new Set(Object.keys(entries).map(d=>monthKey(d)))].sort().reverse();
   return(
     <div>
-      <h2 style={sTitle}>📓 Daily Journal</h2>
+      <h2 style={sT}>📓 Daily Journal</h2>
       <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
         <div style={{flex:"1 1 280px"}}>
           <div style={card2}>
-            <label style={label}>Date</label>
+            <label style={lbl}>Date</label>
             <input type="date" style={{...inp,marginBottom:12}} value={sel} onChange={ev=>setSel(ev.target.value)}/>
-            <label style={label}>How are you feeling today?</label>
+            <label style={lbl}>How are you feeling?</label>
             <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
               {MOODS.map(m=>(
                 <button key={m} onClick={()=>save("mood",m)}
@@ -89,21 +198,21 @@ function Journal({db,setDb}){
                 </button>
               ))}
             </div>
-            <label style={label}>Today's entry</label>
-            <textarea style={{...inp,height:180,resize:"vertical"}} placeholder="Write freely. This space is yours..."
+            <label style={lbl}>Today's entry</label>
+            <textarea style={{...inp,height:200,resize:"vertical"}} placeholder="Write freely. This space is yours..."
               value={e.text} onChange={ev=>save("text",ev.target.value)}/>
-            <p style={{...muted,marginTop:6}}>Saved automatically.</p>
+            <p style={{...mu,marginTop:6}}>Saved automatically.</p>
           </div>
         </div>
-        <div style={{flex:"1 1 180px",maxHeight:400,overflowY:"auto"}}>
-          <label style={label}>Past Entries</label>
-          {Object.keys(entries).length===0&&<p style={muted}>No entries yet.</p>}
+        <div style={{flex:"1 1 180px",maxHeight:450,overflowY:"auto"}}>
+          <label style={lbl}>Past Entries</label>
+          {Object.keys(entries).length===0&&<p style={mu}>No entries yet.</p>}
           {months.map(mo=>(
             <div key={mo}>
-              <p style={{...muted,margin:"8px 0 4px",textTransform:"uppercase",letterSpacing:1}}>{mo}</p>
+              <p style={{...mu,margin:"8px 0 4px",textTransform:"uppercase",letterSpacing:1}}>{mo}</p>
               {Object.keys(entries).filter(d=>monthKey(d)===mo).sort().reverse().map(d=>(
                 <div key={d} onClick={()=>setSel(d)}
-                  style={{...entry,cursor:"pointer",background:sel===d?"#eef4ec":"#fff",borderColor:sel===d?"#5a8055":"#e4ddd4"}}>
+                  style={{...entryBox,cursor:"pointer",background:sel===d?"#eef4ec":"#fff",borderColor:sel===d?"#5a8055":"#e4ddd4"}}>
                   <div style={{fontSize:13,color:"#3a5a38",fontWeight:600}}>{d}</div>
                   {entries[d].mood&&<div style={{fontSize:12,color:"#7a9e7e"}}>{entries[d].mood}</div>}
                   {entries[d].text&&<div style={{fontSize:12,color:"#a09880",marginTop:2}}>{entries[d].text.slice(0,50)}...</div>}
@@ -117,9 +226,234 @@ function Journal({db,setDb}){
   );
 }
 
+// ── Mindset Reframe ───────────────────────────────────────
+function Reframe({db,setDb}){
+  const [thought,setThought]=useState("");
+  const [response,setResponse]=useState("");
+  const [loading,setLoading]=useState(false);
+  const history=db.reframes||[];
+
+  const handleReframe=async()=>{
+    if(!thought.trim())return;
+    setLoading(true);
+    setResponse("");
+    const system=`You are a calm, wise, God-centered life mentor for adults 35-55 who are restructuring their lives for peace and purpose. When someone shares a heavy thought, limiting belief, or negative pattern, you:
+1. Acknowledge their feeling with warmth and without toxic positivity
+2. Gently offer a reframe — a new perspective that is honest, grounding, and hopeful
+3. End with one short, powerful truth they can carry with them
+Keep your response under 150 words. Speak like a trusted mentor, not a therapist. Never use bullet points.`;
+    const reply=await askClaude(system,`I've been thinking: "${thought}"`);
+    setResponse(reply);
+    setLoading(false);
+    const next={...db,reframes:[...history,{thought,response:reply,date:todayStr(),id:Date.now()}]};
+    setDb(next);saveDb(next);
+  };
+
+  return(
+    <div>
+      <h2 style={sT}>🔄 Mindset Reframe</h2>
+      <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:16}}>Share a heavy thought, a fear, or a story you keep telling yourself. Your wise guide will offer a new perspective.</p>
+      <div style={card2}>
+        <label style={lbl}>What thought is weighing on you?</label>
+        <textarea style={{...inp,height:100,resize:"vertical"}} placeholder="I keep thinking that... / I'm afraid that... / I feel like I'm..."
+          value={thought} onChange={e=>setThought(e.target.value)}/>
+        <button style={{...btnSm,marginTop:12,width:"100%",padding:"12px"}} onClick={handleReframe} disabled={loading}>
+          {loading?"Your guide is reflecting...":"Get a Perspective Shift ✨"}
+        </button>
+      </div>
+      {response&&(
+        <div style={{...card2,background:"#f0f5ee",borderLeft:"4px solid #7a9e7e"}}>
+          <p style={{fontSize:13,color:"#5a6e52",fontWeight:600,marginBottom:8}}>🌿 A Perspective for You</p>
+          <p style={{fontSize:15,color:"#3a3028",lineHeight:1.8}}>{response}</p>
+        </div>
+      )}
+      {history.length>0&&(
+        <div style={{marginTop:24}}>
+          <label style={lbl}>Past Reframes</label>
+          {history.slice().reverse().slice(0,5).map(r=>(
+            <div key={r.id} style={entryBox}>
+              <div style={mu}>{r.date}</div>
+              <p style={{fontSize:14,color:"#6a5e50",marginTop:4,fontStyle:"italic"}}>"{r.thought}"</p>
+              <p style={{fontSize:14,color:"#3a3028",lineHeight:1.7,marginTop:8}}>{r.response}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Life Wheel ────────────────────────────────────────────
+function LifeWheel({db,setDb}){
+  const scores=db.wheel||{};
+  const save=(area,val)=>{const next={...db,wheel:{...scores,[area]:val}};setDb(next);saveDb(next);};
+  const size=260,cx=130,cy=130,r=110;
+  const n=WHEEL_AREAS.length;
+  const pts=WHEEL_AREAS.map((a,i)=>{
+    const angle=(i/n)*2*Math.PI-Math.PI/2;
+    const score=(scores[a]||0)/10;
+    return{x:cx+r*score*Math.cos(angle),y:cy+r*score*Math.sin(angle),lx:cx+(r+28)*Math.cos(angle),ly:cy+(r+28)*Math.sin(angle),score:scores[a]||0,label:a,angle};
+  });
+  const poly=pts.map(p=>`${p.x},${p.y}`).join(" ");
+  const gridLines=[2,4,6,8,10].map(s=>{
+    const gpts=WHEEL_AREAS.map((_,i)=>{const a=(i/n)*2*Math.PI-Math.PI/2;return`${cx+r*(s/10)*Math.cos(a)},${cy+r*(s/10)*Math.sin(a)}`;});
+    return gpts.join(" ");
+  });
+  const axes=WHEEL_AREAS.map((_,i)=>{const a=(i/n)*2*Math.PI-Math.PI/2;return{x2:cx+r*Math.cos(a),y2:cy+r*Math.sin(a)};});
+
+  return(
+    <div>
+      <h2 style={sT}>🎯 Life Wheel</h2>
+      <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:16}}>Rate each area of your life from 1–10. This is your honest snapshot — no judgment, just clarity.</p>
+      <div style={{display:"flex",gap:24,flexWrap:"wrap",alignItems:"flex-start"}}>
+        <div style={{flex:"0 0 auto"}}>
+          <svg width={size} height={size}>
+            {gridLines.map((pts,i)=><polygon key={i} points={pts} fill="none" stroke="#e0d8ce" strokeWidth="1"/>)}
+            {axes.map((a,i)=><line key={i} x1={cx} y1={cy} x2={a.x2} y2={a.y2} stroke="#e0d8ce" strokeWidth="1"/>)}
+            <polygon points={poly} fill="rgba(90,128,85,0.2)" stroke="#5a8055" strokeWidth="2"/>
+            {pts.map((p,i)=>(
+              <g key={i}>
+                <circle cx={p.x} cy={p.y} r="4" fill="#5a8055"/>
+                <text x={p.lx} y={p.ly} textAnchor="middle" dominantBaseline="middle"
+                  style={{fontSize:9,fill:"#5a6e52",fontFamily:"Georgia,serif"}}>{p.label.split(" ")[0]}</text>
+              </g>
+            ))}
+          </svg>
+        </div>
+        <div style={{flex:"1 1 200px"}}>
+          {WHEEL_AREAS.map(area=>(
+            <div key={area} style={{marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                <label style={{fontSize:13,color:"#5a6e52",fontWeight:600}}>{area}</label>
+                <span style={{fontSize:13,color:"#3a5a38",fontWeight:700}}>{scores[area]||0}/10</span>
+              </div>
+              <input type="range" min="0" max="10" value={scores[area]||0}
+                onChange={e=>save(area,Number(e.target.value))}
+                style={{width:"100%",accentColor:"#5a8055"}}/>
+            </div>
+          ))}
+          <div style={{...card2,marginTop:8,background:"#f0f5ee"}}>
+            <p style={{fontSize:13,color:"#5a6e52"}}>Average score: <strong style={{color:"#3a5a38"}}>{WHEEL_AREAS.length>0?(WHEEL_AREAS.reduce((s,a)=>s+(scores[a]||0),0)/WHEEL_AREAS.length).toFixed(1):0}/10</strong></p>
+            <p style={{fontSize:12,color:"#a09880",marginTop:4}}>Which area is calling for your attention this season?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Monthly Audit ─────────────────────────────────────────
+function MonthlyAudit({db,setDb}){
+  const mo=monthKey(todayStr());
+  const audits=db.audits||{};
+  const audit=audits[mo]||{};
+  const save=(area,field,val)=>{
+    const next={...db,audits:{...audits,[mo]:{...audit,[area]:{...(audit[area]||{}),[field]:val}}}};
+    setDb(next);saveDb(next);
+  };
+  const overall=AUDIT_AREAS.reduce((s,a)=>s+toNum((audit[a]||{}).score),0)/AUDIT_AREAS.length;
+
+  return(
+    <div>
+      <h2 style={sT}>📋 Monthly Life Audit</h2>
+      <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:4}}>A gentle check-in across all areas of your life.</p>
+      <p style={{...mu,marginBottom:16}}>Month: {mo} · Overall: {overall.toFixed(1)}/10</p>
+      {AUDIT_AREAS.map(area=>{
+        const a=audit[area]||{};
+        return(
+          <div key={area} style={{...entryBox,marginBottom:14}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <span style={{fontWeight:600,color:"#3a5a38",fontSize:15}}>{area}</span>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:13,color:"#a09880"}}>Score:</span>
+                <input type="number" min="1" max="10"
+                  style={{...inp,width:60,textAlign:"center",padding:"6px"}}
+                  value={a.score||""} onChange={e=>save(area,"score",e.target.value)}/>
+              </div>
+            </div>
+            <div style={prog}><div style={pBar(((a.score||0)/10)*100)}/></div>
+            <textarea style={{...inp,height:60,resize:"vertical",marginTop:10}}
+              placeholder={`How is your ${area} this month?`}
+              value={a.note||""} onChange={e=>save(area,"note",e.target.value)}/>
+            <input style={{...inp,marginTop:8}} placeholder="One gentle action I can take..."
+              value={a.action||""} onChange={e=>save(area,"action",e.target.value)}/>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── 30-Day Challenges ─────────────────────────────────────
+function Challenges({db,setDb}){
+  const data=db.challenges||{};
+  const active=data.active||null;
+  const progress=data.progress||{};
+  const ch=CHALLENGES.find(c=>c.id===active);
+  const days=Array.from({length:30},(_,i)=>i+1);
+  const start=(c)=>{const next={...db,challenges:{...data,active:c.id,startDate:todayStr(),progress:{}}};setDb(next);saveDb(next);};
+  const toggle=(day)=>{
+    const p={...progress,[day]:!progress[day]};
+    const next={...db,challenges:{...data,progress:p}};
+    setDb(next);saveDb(next);
+  };
+  const done=Object.values(progress).filter(Boolean).length;
+  const quit=()=>{const next={...db,challenges:{...data,active:null,progress:{}}};setDb(next);saveDb(next);};
+
+  return(
+    <div>
+      <h2 style={sT}>🌱 30-Day Growth Challenges</h2>
+      {!active?(
+        <div>
+          <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:16}}>Choose one challenge to focus on for the next 30 days. Small, intentional actions create transformation.</p>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:12}}>
+            {CHALLENGES.map(c=>(
+              <div key={c.id} style={{...entryBox,cursor:"pointer"}} onClick={()=>start(c)}>
+                <div style={{fontSize:24,marginBottom:8}}>{c.icon}</div>
+                <div style={{fontWeight:600,color:"#3a5a38",marginBottom:4}}>{c.title}</div>
+                <p style={{fontSize:13,color:"#6a5e50",lineHeight:1.6,marginBottom:12}}>{c.desc}</p>
+                <button style={{...btnSm,fontSize:12}}>Begin This Challenge</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ):(
+        <div>
+          <div style={{...card2,background:"#f0f5ee",borderLeft:"4px solid #7a9e7e"}}>
+            <div style={{fontSize:28,marginBottom:6}}>{ch.icon}</div>
+            <div style={{fontWeight:600,color:"#3a5a38",fontSize:16,marginBottom:4}}>{ch.title}</div>
+            <p style={{fontSize:14,color:"#5a6e52",lineHeight:1.7,marginBottom:12}}>{ch.desc}</p>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span style={{fontSize:13,color:"#3a5a38",fontWeight:600}}>{done}/30 days complete</span>
+              <button style={{...btnD,fontSize:12}} onClick={quit}>End Challenge</button>
+            </div>
+            <div style={{...prog,marginTop:10,height:12}}><div style={pBar((done/30)*100)}/></div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:8,marginTop:16}}>
+            {days.map(d=>(
+              <button key={d} onClick={()=>toggle(d)}
+                style={{padding:"10px 4px",borderRadius:10,border:"1.5px solid",fontSize:13,cursor:"pointer",background:progress[d]?"#5a8055":"#fff",borderColor:progress[d]?"#5a8055":"#d8d0c4",color:progress[d]?"#fff":"#6a5e50",fontWeight:progress[d]?"bold":"normal"}}>
+                {progress[d]?"✓":d}
+              </button>
+            ))}
+          </div>
+          {done===30&&(
+            <div style={{...card2,background:"#f0f5ee",marginTop:20,textAlign:"center"}}>
+              <div style={{fontSize:32,marginBottom:8}}>🎉</div>
+              <p style={{fontWeight:600,color:"#3a5a38",fontSize:16}}>You completed the challenge!</p>
+              <p style={{fontSize:14,color:"#6a5e50",marginTop:6}}>This is what becoming looks like. One day at a time.</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Financial ─────────────────────────────────────────────
 function Financial({db,setDb}){
   const fin=db.financial||{income:[],expenses:[],savings:[],debts:[],budgets:{},note:""};
-  const up=next=>{const d={...db,financial:next};setDb(d);persist(d);};
+  const up=next=>{const d={...db,financial:next};setDb(d);saveDb(d);};
   const [incF,setIncF]=useState({source:"",amount:""});
   const [expF,setExpF]=useState({name:"",category:"Food",amount:"",date:todayStr()});
   const [savF,setSavF]=useState({name:"",target:"",saved:""});
@@ -134,7 +468,7 @@ function Financial({db,setDb}){
   const tabs=["overview","income","expenses","savings","debts","budget"];
   return(
     <div>
-      <h2 style={sTitle}>🌱 Financial Calm</h2>
+      <h2 style={sT}>💰 Financial Calm</h2>
       <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
         {tabs.map(t=>(
           <button key={t} onClick={()=>setTab(t)}
@@ -143,171 +477,109 @@ function Financial({db,setDb}){
           </button>
         ))}
       </div>
-
-      {tab==="overview"&&(
-        <div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
-            {[["Monthly Income",fmt(tInc),"#4a6741"],["This Month Spent",fmt(tExp),"#c0645a"],["Total Saved",fmt(tSav),"#5a7a9e"],["Remaining Debt",fmt(tDebt),"#9e7a5a"]].map(([l,v,c])=>(
-              <div key={l} style={{...card2,textAlign:"center"}}>
-                <div style={{fontSize:20,fontWeight:700,color:c}}>{v}</div>
-                <div style={{fontSize:12,color:"#a09880"}}>{l}</div>
-              </div>
-            ))}
-          </div>
-          <div style={card2}>
-            <label style={label}>Financial Reflection</label>
-            <textarea style={{...inp,height:90,resize:"vertical"}} placeholder="How does money feel right now? What intention am I setting?"
-              value={fin.note} onChange={e=>up({...fin,note:e.target.value})}/>
-          </div>
-        </div>
-      )}
-
-      {tab==="income"&&(
-        <div>
-          <div style={card2}>
-            <label style={label}>Add Income Source</label>
-            <div style={{display:"flex",gap:8,marginBottom:8,flexWrap:"wrap"}}>
-              <input style={{...inp,flex:2,minWidth:120}} placeholder="Source" value={incF.source} onChange={e=>setIncF(p=>({...p,source:e.target.value}))}/>
-              <input style={{...inp,flex:1,minWidth:80}} placeholder="$/month" value={incF.amount} onChange={e=>setIncF(p=>({...p,amount:e.target.value}))}/>
-              <button style={btnSm} onClick={()=>{if(!incF.source||!incF.amount)return;up({...fin,income:[...fin.income,{...incF,id:Date.now()}]});setIncF({source:"",amount:""});}}>Add</button>
-            </div>
-          </div>
-          {fin.income.map(i=>(
-            <div key={i.id} style={{...entry,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div><div style={{fontWeight:600,color:"#3a5a38"}}>{i.source}</div><div style={{fontSize:18,color:"#4a6741"}}>{fmt(i.amount)}<span style={{fontSize:12,color:"#a09880"}}>/mo</span></div></div>
-              <button style={btnD} onClick={()=>up({...fin,income:fin.income.filter(x=>x.id!==i.id)})}>Remove</button>
-            </div>
-          ))}
-          {fin.income.length>0&&<div style={{textAlign:"right",color:"#4a6741",fontWeight:700,marginTop:8}}>Total: {fmt(tInc)}/mo</div>}
-        </div>
-      )}
-
-      {tab==="expenses"&&(
-        <div>
-          <div style={card2}>
-            <label style={label}>Log an Expense</label>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-              <input style={inp} placeholder="Description" value={expF.name} onChange={e=>setExpF(p=>({...p,name:e.target.value}))}/>
-              <input style={inp} placeholder="Amount $" value={expF.amount} onChange={e=>setExpF(p=>({...p,amount:e.target.value}))}/>
-              <select style={inp} value={expF.category} onChange={e=>setExpF(p=>({...p,category:e.target.value}))}>
-                {ECATS.map(c=><option key={c}>{c}</option>)}
-              </select>
-              <input type="date" style={inp} value={expF.date} onChange={e=>setExpF(p=>({...p,date:e.target.value}))}/>
-            </div>
-            <button style={btnSm} onClick={()=>{if(!expF.name||!expF.amount)return;up({...fin,expenses:[...fin.expenses,{...expF,id:Date.now()}]});setExpF({name:"",category:"Food",amount:"",date:todayStr()});}}>Add Expense</button>
-          </div>
-          <p style={{...muted,marginBottom:8}}>This month: {fmt(tExp)}</p>
-          {fin.expenses.slice().reverse().map(e=>(
-            <div key={e.id} style={{...entry,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div><span style={{background:"#eef4ec",color:"#3a5a38",borderRadius:6,padding:"3px 9px",fontSize:12,fontWeight:600}}>{e.category}</span><div style={{fontWeight:600,marginTop:4}}>{e.name}</div><div style={muted}>{e.date}</div></div>
-              <div style={{textAlign:"right"}}><div style={{fontSize:17,color:"#c0645a",fontWeight:700}}>{fmt(e.amount)}</div><button style={{...btnD,marginTop:4}} onClick={()=>up({...fin,expenses:fin.expenses.filter(x=>x.id!==e.id)})}>Remove</button></div>
-            </div>
+      {tab==="overview"&&(<div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
+          {[["Monthly Income",fmt(tInc),"#4a6741"],["This Month Spent",fmt(tExp),"#c0645a"],["Total Saved",fmt(tSav),"#5a7a9e"],["Remaining Debt",fmt(tDebt),"#9e7a5a"]].map(([l,v,c])=>(
+            <div key={l} style={{...card2,textAlign:"center"}}><div style={{fontSize:20,fontWeight:700,color:c}}>{v}</div><div style={{fontSize:12,color:"#a09880"}}>{l}</div></div>
           ))}
         </div>
-      )}
-
-      {tab==="savings"&&(
-        <div>
-          <div style={card2}>
-            <label style={label}>Add Savings Goal</label>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
-              <input style={inp} placeholder="Goal name" value={savF.name} onChange={e=>setSavF(p=>({...p,name:e.target.value}))}/>
-              <input style={inp} placeholder="Target $" value={savF.target} onChange={e=>setSavF(p=>({...p,target:e.target.value}))}/>
-              <input style={inp} placeholder="Saved so far $" value={savF.saved} onChange={e=>setSavF(p=>({...p,saved:e.target.value}))}/>
-            </div>
-            <button style={btnSm} onClick={()=>{if(!savF.name||!savF.target)return;up({...fin,savings:[...fin.savings,{...savF,id:Date.now()}]});setSavF({name:"",target:"",saved:""});}}>Add Goal</button>
+        <div style={card2}><label style={lbl}>Financial Reflection</label>
+          <textarea style={{...inp,height:90,resize:"vertical"}} placeholder="How does money feel right now?"
+            value={fin.note} onChange={e=>up({...fin,note:e.target.value})}/></div>
+      </div>)}
+      {tab==="income"&&(<div>
+        <div style={card2}><label style={lbl}>Add Income Source</label>
+          <div style={{display:"flex",gap:8,marginBottom:8,flexWrap:"wrap"}}>
+            <input style={{...inp,flex:2,minWidth:120}} placeholder="Source" value={incF.source} onChange={e=>setIncF(p=>({...p,source:e.target.value}))}/>
+            <input style={{...inp,flex:1,minWidth:80}} placeholder="$/month" value={incF.amount} onChange={e=>setIncF(p=>({...p,amount:e.target.value}))}/>
+            <button style={btnSm} onClick={()=>{if(!incF.source||!incF.amount)return;up({...fin,income:[...fin.income,{...incF,id:Date.now()}]});setIncF({source:"",amount:""});}}>Add</button>
+          </div></div>
+        {fin.income.map(i=>(<div key={i.id} style={{...entryBox,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div><div style={{fontWeight:600,color:"#3a5a38"}}>{i.source}</div><div style={{fontSize:18,color:"#4a6741"}}>{fmt(i.amount)}<span style={{fontSize:12,color:"#a09880"}}>/mo</span></div></div>
+          <button style={btnD} onClick={()=>up({...fin,income:fin.income.filter(x=>x.id!==i.id)})}>Remove</button>
+        </div>))}
+        {fin.income.length>0&&<div style={{textAlign:"right",color:"#4a6741",fontWeight:700,marginTop:8}}>Total: {fmt(tInc)}/mo</div>}
+      </div>)}
+      {tab==="expenses"&&(<div>
+        <div style={card2}><label style={lbl}>Log an Expense</label>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+            <input style={inp} placeholder="Description" value={expF.name} onChange={e=>setExpF(p=>({...p,name:e.target.value}))}/>
+            <input style={inp} placeholder="Amount $" value={expF.amount} onChange={e=>setExpF(p=>({...p,amount:e.target.value}))}/>
+            <select style={inp} value={expF.category} onChange={e=>setExpF(p=>({...p,category:e.target.value}))}>{ECATS.map(c=><option key={c}>{c}</option>)}</select>
+            <input type="date" style={inp} value={expF.date} onChange={e=>setExpF(p=>({...p,date:e.target.value}))}/>
           </div>
-          {fin.savings.map(g=>{
-            const pct=(toNum(g.saved)/toNum(g.target))*100;
-            return(
-              <div key={g.id} style={entry}>
-                <div style={{display:"flex",justifyContent:"space-between"}}>
-                  <div style={{fontWeight:600,color:"#3a5a38"}}>{g.name}</div>
-                  <button style={btnD} onClick={()=>up({...fin,savings:fin.savings.filter(x=>x.id!==g.id)})}>Remove</button>
-                </div>
-                <div style={{fontSize:13,color:"#a09880"}}>{fmt(g.saved)} of {fmt(g.target)} — {Math.round(pct)}%</div>
-                <div style={prog}><div style={progBar(pct,"#5a7a9e")}/></div>
-                <input style={{...inp,width:150,marginTop:8}} placeholder="Update saved $"
-                  onBlur={e=>{if(e.target.value){up({...fin,savings:fin.savings.map(x=>x.id===g.id?{...x,saved:e.target.value}:x)});e.target.value="";}}}/>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {tab==="debts"&&(
-        <div>
-          <div style={card2}>
-            <label style={label}>Add Debt</label>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
-              <input style={inp} placeholder="Debt name" value={debF.name} onChange={e=>setDebF(p=>({...p,name:e.target.value}))}/>
-              <input style={inp} placeholder="Total owed $" value={debF.total} onChange={e=>setDebF(p=>({...p,total:e.target.value}))}/>
-              <input style={inp} placeholder="Paid so far $" value={debF.paid} onChange={e=>setDebF(p=>({...p,paid:e.target.value}))}/>
-            </div>
-            <button style={btnSm} onClick={()=>{if(!debF.name||!debF.total)return;up({...fin,debts:[...fin.debts,{...debF,id:Date.now()}]});setDebF({name:"",total:"",paid:""});}}>Add Debt</button>
+          <button style={btnSm} onClick={()=>{if(!expF.name||!expF.amount)return;up({...fin,expenses:[...fin.expenses,{...expF,id:Date.now()}]});setExpF({name:"",category:"Food",amount:"",date:todayStr()});}}>Add Expense</button></div>
+        <p style={{...mu,marginBottom:8}}>This month: {fmt(tExp)}</p>
+        {fin.expenses.slice().reverse().map(e=>(<div key={e.id} style={{...entryBox,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div><span style={{background:"#eef4ec",color:"#3a5a38",borderRadius:6,padding:"3px 9px",fontSize:12,fontWeight:600}}>{e.category}</span><div style={{fontWeight:600,marginTop:4}}>{e.name}</div><div style={mu}>{e.date}</div></div>
+          <div style={{textAlign:"right"}}><div style={{fontSize:17,color:"#c0645a",fontWeight:700}}>{fmt(e.amount)}</div><button style={{...btnD,marginTop:4}} onClick={()=>up({...fin,expenses:fin.expenses.filter(x=>x.id!==e.id)})}>Remove</button></div>
+        </div>))}
+      </div>)}
+      {tab==="savings"&&(<div>
+        <div style={card2}><label style={lbl}>Add Savings Goal</label>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
+            <input style={inp} placeholder="Goal name" value={savF.name} onChange={e=>setSavF(p=>({...p,name:e.target.value}))}/>
+            <input style={inp} placeholder="Target $" value={savF.target} onChange={e=>setSavF(p=>({...p,target:e.target.value}))}/>
+            <input style={inp} placeholder="Saved so far $" value={savF.saved} onChange={e=>setSavF(p=>({...p,saved:e.target.value}))}/>
           </div>
-          {fin.debts.map(d=>{
-            const pct=(toNum(d.paid)/toNum(d.total))*100;
-            return(
-              <div key={d.id} style={entry}>
-                <div style={{display:"flex",justifyContent:"space-between"}}>
-                  <div style={{fontWeight:600,color:"#3a5a38"}}>{d.name}</div>
-                  <button style={btnD} onClick={()=>up({...fin,debts:fin.debts.filter(x=>x.id!==d.id)})}>Remove</button>
-                </div>
-                <div style={{fontSize:13,color:"#a09880"}}>{fmt(toNum(d.total)-toNum(d.paid))} remaining — {Math.round(pct)}% paid</div>
-                <div style={prog}><div style={progBar(pct,"#9e7a5a")}/></div>
-                <input style={{...inp,width:160,marginTop:8}} placeholder="Update paid amount $"
-                  onBlur={e=>{if(e.target.value){up({...fin,debts:fin.debts.map(x=>x.id===d.id?{...x,paid:e.target.value}:x)});e.target.value="";}}}/>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {tab==="budget"&&(
-        <div>
-          <div style={card2}>
-            <label style={label}>Set Monthly Budget by Category</label>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
-              <select style={{...inp,flex:1,minWidth:120}} value={bCat} onChange={e=>setBCat(e.target.value)}>
-                {ECATS.map(c=><option key={c}>{c}</option>)}
-              </select>
-              <input style={{...inp,flex:1,minWidth:80}} placeholder="Budget $" value={bAmt} onChange={e=>setBAmt(e.target.value)}/>
-              <button style={btnSm} onClick={()=>{if(!bAmt)return;up({...fin,budgets:{...fin.budgets,[bCat]:bAmt}});setBAmt("");}}>Set</button>
-            </div>
+          <button style={btnSm} onClick={()=>{if(!savF.name||!savF.target)return;up({...fin,savings:[...fin.savings,{...savF,id:Date.now()}]});setSavF({name:"",target:"",saved:""});}}>Add Goal</button></div>
+        {fin.savings.map(g=>{const pct=(toNum(g.saved)/toNum(g.target))*100;return(<div key={g.id} style={entryBox}>
+          <div style={{display:"flex",justifyContent:"space-between"}}><div style={{fontWeight:600,color:"#3a5a38"}}>{g.name}</div><button style={btnD} onClick={()=>up({...fin,savings:fin.savings.filter(x=>x.id!==g.id)})}>Remove</button></div>
+          <div style={{fontSize:13,color:"#a09880"}}>{fmt(g.saved)} of {fmt(g.target)} — {Math.round(pct)}%</div>
+          <div style={prog}><div style={pBar(pct,"#5a7a9e")}/></div>
+          <input style={{...inp,width:150,marginTop:8}} placeholder="Update saved $" onBlur={e=>{if(e.target.value){up({...fin,savings:fin.savings.map(x=>x.id===g.id?{...x,saved:e.target.value}:x)});e.target.value="";}}}/>
+        </div>);})}
+      </div>)}
+      {tab==="debts"&&(<div>
+        <div style={card2}><label style={lbl}>Add Debt</label>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
+            <input style={inp} placeholder="Debt name" value={debF.name} onChange={e=>setDebF(p=>({...p,name:e.target.value}))}/>
+            <input style={inp} placeholder="Total owed $" value={debF.total} onChange={e=>setDebF(p=>({...p,total:e.target.value}))}/>
+            <input style={inp} placeholder="Paid so far $" value={debF.paid} onChange={e=>setDebF(p=>({...p,paid:e.target.value}))}/>
           </div>
-          {ECATS.filter(c=>fin.budgets[c]).map(c=>{
-            const budget=toNum(fin.budgets[c]);
-            const spent=fin.expenses.filter(e=>e.category===c&&monthKey(e.date)===monthKey(todayStr())).reduce((s,e)=>s+toNum(e.amount),0);
-            const pct=(spent/budget)*100;
-            const over=pct>100;
-            return(
-              <div key={c} style={entry}>
-                <div style={{display:"flex",justifyContent:"space-between"}}>
-                  <span style={{background:"#eef4ec",color:"#3a5a38",borderRadius:6,padding:"3px 9px",fontSize:12,fontWeight:600}}>{c}</span>
-                  <span style={{fontSize:13,color:over?"#c0645a":"#4a6741",fontWeight:600}}>{fmt(spent)} / {fmt(budget)}</span>
-                </div>
-                <div style={prog}><div style={progBar(pct,over?"#c0645a":"#5a8055")}/></div>
-                {over&&<div style={{fontSize:12,color:"#c0645a",marginTop:4}}>Over budget by {fmt(spent-budget)}</div>}
-              </div>
-            );
-          })}
-        </div>
-      )}
+          <button style={btnSm} onClick={()=>{if(!debF.name||!debF.total)return;up({...fin,debts:[...fin.debts,{...debF,id:Date.now()}]});setDebF({name:"",total:"",paid:""});}}>Add Debt</button></div>
+        {fin.debts.map(d=>{const pct=(toNum(d.paid)/toNum(d.total))*100;return(<div key={d.id} style={entryBox}>
+          <div style={{display:"flex",justifyContent:"space-between"}}><div style={{fontWeight:600,color:"#3a5a38"}}>{d.name}</div><button style={btnD} onClick={()=>up({...fin,debts:fin.debts.filter(x=>x.id!==d.id)})}>Remove</button></div>
+          <div style={{fontSize:13,color:"#a09880"}}>{fmt(toNum(d.total)-toNum(d.paid))} remaining — {Math.round(pct)}% paid</div>
+          <div style={prog}><div style={pBar(pct,"#9e7a5a")}/></div>
+          <input style={{...inp,width:160,marginTop:8}} placeholder="Update paid amount $" onBlur={e=>{if(e.target.value){up({...fin,debts:fin.debts.map(x=>x.id===d.id?{...x,paid:e.target.value}:x)});e.target.value="";}}}/>
+        </div>);})}
+      </div>)}
+      {tab==="budget"&&(<div>
+        <div style={card2}><label style={lbl}>Set Monthly Budget by Category</label>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
+            <select style={{...inp,flex:1,minWidth:120}} value={bCat} onChange={e=>setBCat(e.target.value)}>{ECATS.map(c=><option key={c}>{c}</option>)}</select>
+            <input style={{...inp,flex:1,minWidth:80}} placeholder="Budget $" value={bAmt} onChange={e=>setBAmt(e.target.value)}/>
+            <button style={btnSm} onClick={()=>{if(!bAmt)return;up({...fin,budgets:{...fin.budgets,[bCat]:bAmt}});setBAmt("");}}>Set</button>
+          </div></div>
+        {ECATS.filter(c=>fin.budgets[c]).map(c=>{
+          const budget=toNum(fin.budgets[c]);
+          const spent=fin.expenses.filter(e=>e.category===c&&monthKey(e.date)===monthKey(todayStr())).reduce((s,e)=>s+toNum(e.amount),0);
+          const pct=(spent/budget)*100;const over=pct>100;
+          return(<div key={c} style={entryBox}>
+            <div style={{display:"flex",justifyContent:"space-between"}}><span style={{background:"#eef4ec",color:"#3a5a38",borderRadius:6,padding:"3px 9px",fontSize:12,fontWeight:600}}>{c}</span><span style={{fontSize:13,color:over?"#c0645a":"#4a6741",fontWeight:600}}>{fmt(spent)} / {fmt(budget)}</span></div>
+            <div style={prog}><div style={pBar(pct,over?"#c0645a":"#5a8055")}/></div>
+            {over&&<div style={{fontSize:12,color:"#c0645a",marginTop:4}}>Over budget by {fmt(spent-budget)}</div>}
+          </div>);
+        })}
+      </div>)}
     </div>
   );
 }
 
+// ══════════════════════════════════════════════════════════
+// MAIN APP
+// ══════════════════════════════════════════════════════════
 function App(){
   const [screen,setScreen]=useState("license");
   const [licIn,setLicIn]=useState("");
   const [licErr,setLicErr]=useState("");
-  const [active,setActive]=useState("journal");
+  const [active,setActive]=useState("intention");
   const [wA,setWA]=useState(["","",""]);
   const [wDone,setWDone]=useState(false);
-  const [db,setDb]=useState(load);
+  const [db,setDb]=useState(loadDb);
 
-  const saveDb=next=>{setDb(next);persist(next);};
+  const save=(next)=>{setDb(next);saveDb(next);};
 
   const handleLic=()=>{
     const k=licIn.trim().toUpperCase();
@@ -315,7 +587,7 @@ function App(){
     else setLicErr("License key not recognized. Please check your Gumroad purchase email.");
   };
 
-  if(screen==="license") return(
+  if(screen==="license")return(
     <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#f2ede6,#e8f0e4)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{background:"#fff",borderRadius:20,padding:"48px 40px",width:"100%",maxWidth:460,boxShadow:"0 8px 40px rgba(100,120,80,.10)"}}>
         <div style={{textAlign:"center",marginBottom:28}}>
@@ -323,30 +595,27 @@ function App(){
           <h1 style={{fontSize:26,color:"#3a5a38",margin:"0 0 8px",fontWeight:"normal"}}>Peaceful Life Planner</h1>
           <p style={{fontSize:13,color:"#8a9880"}}>A sanctuary for your next season.</p>
         </div>
-        <label style={label}>Enter Your License Key</label>
-        <p style={{...muted,marginBottom:10}}>From your Gumroad purchase email</p>
+        <label style={lbl}>Enter Your License Key</label>
+        <p style={{...mu,marginBottom:10}}>From your Gumroad purchase email</p>
         <input style={inp} placeholder="e.g. PEACE-XXXX-XXXX" value={licIn}
           onChange={e=>setLicIn(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLic()}/>
         {licErr&&<p style={{color:"#c0645a",fontSize:12,marginTop:6}}>{licErr}</p>}
         <button style={{display:"block",width:"100%",marginTop:16,padding:"13px",background:"#5a8055",color:"#fff",border:"none",borderRadius:12,fontSize:15,cursor:"pointer"}} onClick={handleLic}>Enter App →</button>
-        <p style={{...muted,textAlign:"center",marginTop:16}}>Don't have a key? <a href="https://gumroad.com" target="_blank" style={{color:"#7a9e7e"}}>Purchase on Gumroad</a></p>
+        <p style={{...mu,textAlign:"center",marginTop:16}}>Don't have a key? <a href="https://gumroad.com" target="_blank" style={{color:"#7a9e7e"}}>Purchase on Gumroad</a></p>
       </div>
     </div>
   );
 
-  if(screen==="welcome") return(
+  if(screen==="welcome")return(
     <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#f2ede6,#e8f0e4)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{background:"#fff",borderRadius:20,padding:"48px 40px",width:"100%",maxWidth:540,boxShadow:"0 8px 40px rgba(100,120,80,.10)"}}>
         <div style={{fontSize:32,textAlign:"center",marginBottom:14}}>🌿</div>
         {!wDone?(
           <>
-            <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:20}}>
-              Welcome. This season of your life is about <em>peace, clarity, and intention</em>.<br/><br/>
-              <span style={{color:"#a09880"}}>Answer only what feels easy:</span>
-            </p>
+            <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:20}}>Welcome. This season of your life is about <em>peace, clarity, and intention</em> — not rushing or proving anything.<br/><br/><span style={{color:"#a09880"}}>Answer only what feels easy:</span></p>
             {["What does a peaceful life feel like to you?","What feels most out of alignment right now?","What are you protecting your peace from in this season?"].map((q,i)=>(
               <div key={i} style={{marginBottom:14}}>
-                <label style={label}>{i+1}. {q}</label>
+                <label style={lbl}>{i+1}. {q}</label>
                 <textarea style={{...inp,height:64,resize:"vertical"}} placeholder="Take your time..."
                   value={wA[i]} onChange={e=>{const a=[...wA];a[i]=e.target.value;setWA(a);}}/>
               </div>
@@ -366,97 +635,74 @@ function App(){
   );
 
   const renderSection=()=>{
-    if(active==="journal") return <Journal db={db} setDb={saveDb}/>;
-    if(active==="financial") return <Financial db={db} setDb={saveDb}/>;
+    if(active==="intention")return<Intention db={db} setDb={save}/>;
+    if(active==="journal")return<Journal db={db} setDb={save}/>;
+    if(active==="reframe")return<Reframe db={db} setDb={save}/>;
+    if(active==="wheel")return<LifeWheel db={db} setDb={save}/>;
+    if(active==="audit")return<MonthlyAudit db={db} setDb={save}/>;
+    if(active==="challenges")return<Challenges db={db} setDb={save}/>;
+    if(active==="financial")return<Financial db={db} setDb={save}/>;
 
     if(active==="memories"){
       const mems=db.memories||[];
       const [dr,setDr]=useState({title:"",note:"",date:todayStr()});
-      return(
-        <div>
-          <h2 style={sTitle}>📖 Memory Keeper</h2>
-          <div style={card2}>
-            <input style={inp} placeholder="Memory title..." value={dr.title} onChange={e=>setDr(p=>({...p,title:e.target.value}))}/>
-            <input type="date" style={{...inp,marginTop:8}} value={dr.date} onChange={e=>setDr(p=>({...p,date:e.target.value}))}/>
-            <textarea style={{...inp,height:80,marginTop:8,resize:"vertical"}} placeholder="What made this moment special..."
-              value={dr.note} onChange={e=>setDr(p=>({...p,note:e.target.value}))}/>
-            <button style={{...btnSm,marginTop:10}} onClick={()=>{if(!dr.title)return;saveDb({...db,memories:[...mems,{...dr,id:Date.now()}]});setDr({title:"",note:"",date:todayStr()});}}>Save Memory</button>
-          </div>
-          {mems.slice().reverse().map(m=>(
-            <div key={m.id} style={entry}>
-              <div style={{fontWeight:600,color:"#4a6741"}}>{m.title}</div>
-              {m.date&&<div style={muted}>{m.date}</div>}
-              {m.note&&<div style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:5}}>{m.note}</div>}
-            </div>
-          ))}
+      return(<div><h2 style={sT}>📖 Memory Keeper</h2>
+        <div style={card2}>
+          <input style={inp} placeholder="Memory title..." value={dr.title} onChange={e=>setDr(p=>({...p,title:e.target.value}))}/>
+          <input type="date" style={{...inp,marginTop:8}} value={dr.date} onChange={e=>setDr(p=>({...p,date:e.target.value}))}/>
+          <textarea style={{...inp,height:80,marginTop:8,resize:"vertical"}} placeholder="What made this moment special..."
+            value={dr.note} onChange={e=>setDr(p=>({...p,note:e.target.value}))}/>
+          <button style={{...btnSm,marginTop:10}} onClick={()=>{if(!dr.title)return;save({...db,memories:[...mems,{...dr,id:Date.now()}]});setDr({title:"",note:"",date:todayStr()});}}>Save Memory</button>
         </div>
-      );
+        {mems.slice().reverse().map(m=>(<div key={m.id} style={entryBox}><div style={{fontWeight:600,color:"#4a6741"}}>{m.title}</div>{m.date&&<div style={mu}>{m.date}</div>}{m.note&&<div style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:5}}>{m.note}</div></div>))}
+      </div>);
     }
 
     if(active==="reset"){
       const rs=db.resets||[];
       const [dr,setDr]=useState({wins:"",release:"",intention:""});
-      return(
-        <div>
-          <h2 style={sTitle}>🌙 Weekly Reset</h2>
-          <div style={card2}>
-            {[["wins","What went well this week?"],["release","What am I releasing without guilt?"],["intention","My gentle intention for next week..."]].map(([k,l])=>(
-              <div key={k} style={{marginBottom:12}}>
-                <label style={label}>{l}</label>
-                <textarea style={{...inp,height:64,resize:"vertical"}} value={dr[k]} onChange={e=>setDr(p=>({...p,[k]:e.target.value}))}/>
-              </div>
-            ))}
-            <button style={btnSm} onClick={()=>{if(!dr.wins&&!dr.release&&!dr.intention)return;saveDb({...db,resets:[...rs,{...dr,date:todayStr(),id:Date.now()}]});setDr({wins:"",release:"",intention:""});}}>Save Reset</button>
-          </div>
-          {rs.slice().reverse().map(r=>(
-            <div key={r.id} style={entry}>
-              <div style={muted}>{r.date}</div>
-              {r.wins&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:6}}><strong>Wins:</strong> {r.wins}</p>}
-              {r.release&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:4}}><strong>Released:</strong> {r.release}</p>}
-              {r.intention&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:4}}><strong>Intention:</strong> {r.intention}</p>}
-            </div>
+      return(<div><h2 style={sT}>🌙 Weekly Reset</h2>
+        <div style={card2}>
+          {[["wins","What went well this week?"],["release","What am I releasing without guilt?"],["intention","My gentle intention for next week..."]].map(([k,l])=>(
+            <div key={k} style={{marginBottom:12}}><label style={lbl}>{l}</label>
+              <textarea style={{...inp,height:64,resize:"vertical"}} value={dr[k]} onChange={e=>setDr(p=>({...p,[k]:e.target.value}))}/></div>
           ))}
+          <button style={btnSm} onClick={()=>{if(!dr.wins&&!dr.release&&!dr.intention)return;save({...db,resets:[...rs,{...dr,date:todayStr(),id:Date.now()}]});setDr({wins:"",release:"",intention:""});}}>Save Reset</button>
         </div>
-      );
+        {rs.slice().reverse().map(r=>(<div key={r.id} style={entryBox}><div style={mu}>{r.date}</div>
+          {r.wins&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:6}}><strong>Wins:</strong> {r.wins}</p>}
+          {r.release&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:4}}><strong>Released:</strong> {r.release}</p>}
+          {r.intention&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:4}}><strong>Intention:</strong> {r.intention}</p>}
+        </div>))}
+      </div>);
     }
 
     if(active==="future"){
       const lts=db.letters||[];
       const [dr,setDr]=useState("");
-      return(
-        <div>
-          <h2 style={sTitle}>💌 Future Self Letters</h2>
-          <div style={card2}>
-            <textarea style={{...inp,height:160,resize:"vertical"}} placeholder="Dear future me..." value={dr} onChange={e=>setDr(e.target.value)}/>
-            <button style={{...btnSm,marginTop:10}} onClick={()=>{if(!dr.trim())return;saveDb({...db,letters:[...lts,{text:dr,date:todayStr(),id:Date.now()}]});setDr("");}}>Seal This Letter</button>
-          </div>
-          {lts.slice().reverse().map(l=>(
-            <div key={l.id} style={entry}>
-              <div style={muted}>Written on {l.date}</div>
-              <p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:6}}>{l.text}</p>
-            </div>
-          ))}
+      return(<div><h2 style={sT}>💌 Future Self Letters</h2>
+        <div style={card2}>
+          <textarea style={{...inp,height:160,resize:"vertical"}} placeholder="Dear future me..." value={dr} onChange={e=>setDr(e.target.value)}/>
+          <button style={{...btnSm,marginTop:10}} onClick={()=>{if(!dr.trim())return;save({...db,letters:[...lts,{text:dr,date:todayStr(),id:Date.now()}]});setDr("");}}>Seal This Letter</button>
         </div>
-      );
+        {lts.slice().reverse().map(l=>(<div key={l.id} style={entryBox}><div style={mu}>Written on {l.date}</div><p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:6}}>{l.text}</p></div>))}
+      </div>);
     }
 
     const sc=SC[active];
     if(!sc)return null;
     const note=db[`note_${active}`]||"";
-    return(
-      <div>
-        <h2 style={sTitle}>{sc.h}</h2>
-        <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:16}}>{sc.p}</p>
-        <textarea style={{...inp,height:200,resize:"vertical"}} placeholder={sc.ph}
-          value={note} onChange={e=>saveDb({...db,[`note_${active}`]:e.target.value})}/>
-        <p style={{...muted,marginTop:6}}>Saved automatically.</p>
-      </div>
-    );
+    return(<div><h2 style={sT}>{sc.h}</h2>
+      <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:16}}>{sc.p}</p>
+      <textarea style={{...inp,height:200,resize:"vertical"}} placeholder={sc.ph}
+        value={note} onChange={e=>save({...db,[`note_${active}`]:e.target.value})}/>
+      <p style={{...mu,marginTop:6}}>Saved automatically.</p>
+    </div>);
   };
 
   return(
     <div style={{display:"flex",minHeight:"100vh",background:"#f2ede6"}}>
-      <div style={{width:210,background:"#fff",borderRight:"1px solid #e8e0d4",padding:"28px 14px",display:"flex",flexDirection:"column",gap:2,minHeight:"100vh"}}>
+      <div style={{width:210,background:"#fff",borderRight:"1px solid #e8e0d4",padding:"28px 14px",display:"flex",flexDirection:"column",gap:2,minHeight:"100vh",overflowY:"auto"}}>
         <div style={{fontSize:22,marginBottom:2}}>🌿</div>
         <div style={{fontSize:10,color:"#a09080",marginBottom:20,textTransform:"uppercase",letterSpacing:1}}>Peaceful Life</div>
         {SECTIONS.map(s=>(
@@ -468,7 +714,7 @@ function App(){
         <div style={{flex:1}}/>
         <button style={{width:"100%",textAlign:"left",background:"none",border:"none",padding:"9px 11px",borderRadius:9,fontSize:13,color:"#b08060",cursor:"pointer"}} onClick={()=>setScreen("welcome")}>← Welcome</button>
       </div>
-      <div style={{flex:1,padding:"40px 36px",maxWidth:760,margin:"0 auto",overflowY:"auto"}}>
+      <div style={{flex:1,padding:"40px 36px",maxWidth:780,margin:"0 auto",overflowY:"auto"}}>
         {renderSection()}
       </div>
     </div>
