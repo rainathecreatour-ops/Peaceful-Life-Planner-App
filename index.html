@@ -4,42 +4,87 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Peaceful Life Planner</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'EB Garamond',Georgia,serif;background:#f2ede6;color:#3a3028;min-height:100vh}
-textarea,input,button,select{font-family:inherit}
-button:hover{opacity:.88;transition:opacity .2s}
-input:focus,textarea:focus,select:focus{border-color:#7a9e7e!important;outline:none}
+input,textarea,button,select{font-family:'EB Garamond',Georgia,serif;font-size:15px}
+button{cursor:pointer}
+button:hover{opacity:.85}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-thumb{background:#c8bfb0;border-radius:10px}
+
+/* Layout */
+#app{min-height:100vh}
+.screen{min-height:100vh;background:linear-gradient(135deg,#f2ede6,#e8f0e4);display:flex;align-items:center;justify-content:center;padding:20px}
+.screen-card{background:#fff;border-radius:20px;padding:48px 40px;width:100%;max-width:500px;box-shadow:0 8px 40px rgba(100,120,80,.10)}
+.app-layout{display:flex;min-height:100vh}
+.sidebar{width:215px;background:#fff;border-right:1px solid #e8e0d4;padding:28px 14px;display:flex;flex-direction:column;gap:2px;min-height:100vh;overflow-y:auto;flex-shrink:0}
+.main-content{flex:1;padding:40px 36px;max-width:780px;margin:0 auto;overflow-y:auto}
+
+/* Sidebar */
+.sidebar-title{font-size:10px;color:#a09080;margin-bottom:20px;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.nav-btn{width:100%;text-align:left;background:none;border:none;padding:9px 11px;border-radius:9px;font-size:13px;color:#6a5e50;display:flex;align-items:center;gap:7px}
+.nav-btn:hover{background:#f5f0ea}
+.nav-btn.active{background:#eef4ec;color:#3a5a38;font-weight:bold}
+
+/* Cards */
+.card{background:#f8f5f0;border-radius:12px;padding:18px;margin-bottom:16px}
+.card-green{background:#f0f5ee;border-left:4px solid #7a9e7e;border-radius:12px;padding:18px;margin-bottom:16px}
+.card-warm{background:#faf0e8;border-radius:12px;padding:18px;margin-bottom:16px}
+.entry{background:#fff;border:1px solid #e4ddd4;border-radius:12px;padding:14px 18px;margin-bottom:10px}
+
+/* Form elements */
+.field{width:100%;padding:10px 13px;border:1.5px solid #d8d0c4;border-radius:10px;background:#faf8f5;color:#3a3028;line-height:1.5}
+.field:focus{outline:2px solid #7a9e7e;border-color:#7a9e7e}
+textarea.field{resize:vertical}
+label.lbl{display:block;font-size:13px;color:#5a6e52;font-weight:600;margin-bottom:5px;margin-top:12px}
+
+/* Buttons */
+.btn{display:block;width:100%;margin-top:14px;padding:13px;background:#5a8055;color:#fff;border:none;border-radius:12px;font-size:15px}
+.btn-sm{padding:8px 16px;background:#5a8055;color:#fff;border:none;border-radius:8px;font-size:13px;display:inline-block}
+.btn-danger{padding:6px 12px;background:#c0645a;color:#fff;border:none;border-radius:8px;font-size:12px}
+.btn-tab{padding:6px 13px;border-radius:20px;border:1.5px solid #d8d0c4;font-size:12px;background:#fff;color:#6a5e50;margin-right:6px;margin-bottom:6px}
+.btn-tab.active{background:#eef4ec;border-color:#5a8055;color:#3a5a38;font-weight:600}
+.btn-mood{padding:5px 10px;border-radius:20px;border:1.5px solid #d8d0c4;font-size:12px;background:#fff;color:#6a5e50;margin:0 4px 4px 0}
+.btn-mood.active{background:#eef4ec;border-color:#5a8055;color:#3a5a38}
+
+/* Misc */
+.muted{font-size:12px;color:#a09880}
+.stitle{font-size:20px;color:#3a5a38;font-weight:normal;margin-bottom:10px}
+.tag{background:#eef4ec;color:#3a5a38;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:600}
+.progress{height:10px;border-radius:5px;background:#e0d8ce;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:5px;transition:width .4s}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.two-col{display:flex;gap:20px;flex-wrap:wrap}
+.stat-box{text-align:center}
+.day-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:16px}
+.day-btn{padding:10px 4px;border-radius:10px;border:1.5px solid #d8d0c4;font-size:13px;background:#fff;color:#6a5e50}
+.day-btn.done{background:#5a8055;border-color:#5a8055;color:#fff;font-weight:bold}
+.wheel-wrap{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.challenge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const {useState,useEffect,useRef}=React;
+<div id="app"></div>
+<script>
+// ─────────────────────────────────────────────
+// DATA & STORAGE
+// ─────────────────────────────────────────────
+const SK = "plp_v5";
+const db = (() => { try { return JSON.parse(localStorage.getItem(SK)) || {}; } catch { return {}; } })();
+const persist = () => localStorage.setItem(SK, JSON.stringify(db));
 
-// ── Storage ──────────────────────────────────────────────
-const SK="plp_v3";
-const loadDb=()=>{try{return JSON.parse(localStorage.getItem(SK))||{}}catch{return{}}};
-const saveDb=d=>localStorage.setItem(SK,JSON.stringify(d));
-const todayStr=()=>new Date().toISOString().slice(0,10);
-const monthKey=d=>d.slice(0,7);
-const fmt=n=>Number(n||0).toLocaleString("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0});
-const toNum=s=>parseFloat(String(s).replace(/[^0-9.]/g,""))||0;
+const today = () => new Date().toISOString().slice(0,10);
+const monthKey = d => d.slice(0,7);
+const fmt = n => Number(n||0).toLocaleString("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0});
+const toNum = s => parseFloat(String(s).replace(/[^0-9.]/g,""))||0;
 
-// ── License ───────────────────────────────────────────────
-const LICENSE_KEYS=(window.VITE_LICENSE_KEYS||"").split(",").map(k=>k.trim().toUpperCase()).filter(Boolean);
-
-// ── Constants ─────────────────────────────────────────────
-const MOODS=["🌸 Peaceful","🌤 Hopeful","😌 Calm","😔 Heavy","😤 Frustrated","🌪 Overwhelmed","🙏 Grateful"];
-const ECATS=["Housing","Food","Transport","Utilities","Health","Clothing","Entertainment","Faith/Giving","Self-care","Other"];
-const WHEEL_AREAS=["Faith & Spirit","Health & Body","Mind & Growth","Relationships","Finances","Career & Purpose","Joy & Play","Home & Environment"];
-const WISDOM=[
+const MOODS = ["🌸 Peaceful","🌤 Hopeful","😌 Calm","😔 Heavy","😤 Frustrated","🌪 Overwhelmed","🙏 Grateful"];
+const ECATS = ["Housing","Food","Transport","Utilities","Health","Clothing","Entertainment","Faith/Giving","Self-care","Other"];
+const WHEEL_AREAS = ["Faith & Spirit","Health & Body","Mind & Growth","Relationships","Finances","Career & Purpose","Joy & Play","Home & Environment"];
+const AUDIT_AREAS = ["Faith & Spirit","Mental Health","Physical Health","Relationships","Finances","Career & Purpose","Home & Environment","Joy & Rest"];
+const WISDOM = [
   "Peace is not the absence of chaos — it is your presence within it.",
   "You are not behind. You are exactly where your journey requires.",
   "Rest is not a reward. It is a right.",
@@ -56,20 +101,19 @@ const WISDOM=[
   "The life you want is built in ordinary moments done with love.",
   "Let go of who you were to make room for who you're becoming.",
 ];
-const CHALLENGES=[
-  {id:1,title:"Morning Stillness",desc:"Spend 10 minutes in silence each morning before reaching for your phone.",icon:"🌅"},
-  {id:2,title:"Gratitude Depth",desc:"Write 3 things you're grateful for — but explain WHY each one matters.",icon:"🙏"},
-  {id:3,title:"One Boundary a Day",desc:"Practice saying no to one thing that doesn't align with your peace.",icon:"🛡️"},
-  {id:4,title:"Digital Sunset",desc:"Put your phone away 1 hour before bed. Replace it with something nourishing.",icon:"🌙"},
-  {id:5,title:"Body Check-In",desc:"Pause twice a day and ask your body: what do you need right now?",icon:"🤍"},
-  {id:6,title:"Forgiveness Walk",desc:"On your daily walk, mentally release one person or situation each day.",icon:"🌿"},
-  {id:7,title:"Money Awareness",desc:"Track every dollar you spend — not to judge, but to understand.",icon:"🌱"},
-  {id:8,title:"Connection Reach",desc:"Send one genuine message of love or appreciation to someone each day.",icon:"💛"},
-  {id:9,title:"Dream Journaling",desc:"Each morning, write down what you remember from your dreams or your first waking thought.",icon:"📓"},
-  {id:10,title:"Declutter Your Space",desc:"Remove one item each day that no longer serves your next chapter.",icon:"✨"},
+const CHALLENGES = [
+  {id:1,icon:"🌅",title:"Morning Stillness",desc:"Spend 10 minutes in silence each morning before reaching for your phone."},
+  {id:2,icon:"🙏",title:"Gratitude Depth",desc:"Write 3 things you're grateful for and explain WHY each one matters."},
+  {id:3,icon:"🛡️",title:"One Boundary a Day",desc:"Practice saying no to one thing that doesn't align with your peace."},
+  {id:4,icon:"🌙",title:"Digital Sunset",desc:"Put your phone away 1 hour before bed. Replace it with something nourishing."},
+  {id:5,icon:"🤍",title:"Body Check-In",desc:"Pause twice a day and ask your body: what do you need right now?"},
+  {id:6,icon:"🌿",title:"Forgiveness Walk",desc:"On your daily walk, mentally release one person or situation each day."},
+  {id:7,icon:"🌱",title:"Money Awareness",desc:"Track every dollar you spend — not to judge, but to understand."},
+  {id:8,icon:"💛",title:"Connection Reach",desc:"Send one genuine message of love or appreciation to someone each day."},
+  {id:9,icon:"📓",title:"Dream Journaling",desc:"Each morning write your first waking thought or what you remember from dreams."},
+  {id:10,icon:"✨",title:"Declutter Your Space",desc:"Remove one item each day that no longer serves your next chapter."},
 ];
-const AUDIT_AREAS=["Faith & Spirit","Mental Health","Physical Health","Relationships","Finances","Career & Purpose","Home & Environment","Joy & Rest"];
-const SECTIONS=[
+const SECTIONS = [
   {id:"intention",icon:"🌅",label:"Daily Intention"},
   {id:"journal",icon:"📓",label:"Daily Journal"},
   {id:"reframe",icon:"🔄",label:"Mindset Reframe"},
@@ -87,641 +131,737 @@ const SECTIONS=[
   {id:"reset",icon:"🌙",label:"Weekly Reset"},
   {id:"future",icon:"💌",label:"Future Self Letters"},
 ];
-const SC={
+const STATIC = {
   vision:{h:"🌿 Life Vision",p:"Describe the life you are moving toward. What do your days look, feel, and sound like?",ph:"My peaceful life looks like..."},
   boundaries:{h:"🛡️ Boundaries & Energy",p:"What situations or habits are draining your energy? What boundaries would restore your peace?",ph:"A boundary I need to set is..."},
   faith:{h:"✨ Faith & Grounding",p:"How are you nurturing your spirit this season? What practices help you feel connected to God?",ph:"My grounding practices are..."},
   relationships:{h:"💛 Relationship Alignment",p:"Which relationships feel nourishing? Which feel heavy?",ph:"The relationships I want to invest in are..."},
   health:{h:"🤍 Health & Wellness",p:"Without pressure or perfection — how do you want to care for your body and mind?",ph:"One gentle health habit I want to build is..."},
-  experiences:{h:"🗺️ Experiences & Travel",p:"What experiences are you saving your energy for? A trip, a moment, a gathering?",ph:"An experience I'm planning or dreaming of..."},
+  experiences:{h:"🗺️ Experiences & Travel",p:"What experiences are you saving your energy for?",ph:"An experience I'm planning or dreaming of..."},
 };
 
-// ── Styles ────────────────────────────────────────────────
-const inp={width:"100%",padding:"10px 13px",fontSize:15,border:"1.5px solid #d8d0c4",borderRadius:10,background:"#faf8f5",color:"#3a3028",boxSizing:"border-box",lineHeight:1.5};
-const btnSm={padding:"8px 16px",background:"#5a8055",color:"#fff",border:"none",borderRadius:8,fontSize:13,cursor:"pointer"};
-const btnD={padding:"6px 12px",background:"#c0645a",color:"#fff",border:"none",borderRadius:8,fontSize:12,cursor:"pointer"};
-const card2={background:"#f8f5f0",borderRadius:12,padding:18,marginBottom:16};
-const entryBox={background:"#fff",border:"1px solid #e4ddd4",borderRadius:12,padding:"14px 18px",marginBottom:10};
-const mu={fontSize:12,color:"#a09880",margin:0};
-const sT={fontSize:20,color:"#3a5a38",fontWeight:"normal",marginBottom:10,marginTop:0};
-const lbl={display:"block",fontSize:13,color:"#5a6e52",fontWeight:600,marginBottom:5};
-const prog={height:10,borderRadius:5,background:"#e0d8ce",overflow:"hidden",marginTop:6};
-const pBar=(pct,color="#5a8055")=>({height:"100%",width:`${Math.min(pct,100)}%`,background:color,borderRadius:5,transition:"width .4s"});
+// ─────────────────────────────────────────────
+// ROUTER — no re-renders, just swap innerHTML
+// ─────────────────────────────────────────────
+let currentSection = "intention";
+let finTab = "overview";
 
-// ── AI Call ───────────────────────────────────────────────
-async function askClaude(systemPrompt, userMsg){
-  try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",
-        max_tokens:1000,
-        system:systemPrompt,
-        messages:[{role:"user",content:userMsg}]
-      })
-    });
-    const data=await res.json();
-    return data.content?.[0]?.text||"I'm here with you. Take a breath.";
-  }catch{
-    return "I'm here with you. Take a breath and try again.";
+function showScreen(id) {
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  if (id === "welcome") app.appendChild(buildWelcome());
+  else if (id === "welcome2") app.appendChild(buildWelcome2());
+  else app.appendChild(buildMain());
+}
+
+function showSection(id) {
+  currentSection = id;
+  const content = document.getElementById("main-content");
+  if (!content) return;
+  content.innerHTML = "";
+  content.appendChild(buildSection(id));
+  document.querySelectorAll(".nav-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.id === id);
+  });
+}
+
+// ─────────────────────────────────────────────
+// WELCOME
+// ─────────────────────────────────────────────
+function buildWelcome() {
+  const wrap = document.createElement("div");
+  wrap.className = "screen";
+  wrap.innerHTML = `
+    <div class="screen-card" style="max-width:540px">
+      <div style="font-size:32px;text-align:center;margin-bottom:14px">🌿</div>
+      <p style="font-size:15px;color:#4a4035;line-height:1.7;margin-bottom:8px">
+        Welcome. This season of your life is about <em>peace, clarity, and intention</em> — not rushing or proving anything.
+      </p>
+      <p class="muted" style="margin-bottom:20px">Answer only what feels easy:</p>
+      <label class="lbl" style="margin-top:0">1. What does a peaceful life feel like to you?</label>
+      <textarea id="wa0" class="field" style="height:80px;width:100%;margin-bottom:14px" placeholder="Take your time..."></textarea>
+      <label class="lbl" style="margin-top:0">2. What feels most out of alignment right now?</label>
+      <textarea id="wa1" class="field" style="height:80px;width:100%;margin-bottom:14px" placeholder="Take your time..."></textarea>
+      <label class="lbl" style="margin-top:0">3. What are you protecting your peace from in this season?</label>
+      <textarea id="wa2" class="field" style="height:80px;width:100%;margin-bottom:14px" placeholder="Take your time..."></textarea>
+      <button class="btn" id="welcome-next">Begin My Journey →</button>
+    </div>`;
+  wrap.querySelector("#welcome-next").addEventListener("click", () => {
+    const a0 = wrap.querySelector("#wa0").value.trim();
+    const a1 = wrap.querySelector("#wa1").value.trim();
+    const a2 = wrap.querySelector("#wa2").value.trim();
+    if (a0||a1||a2) {
+      db.welcomeAnswers = [a0,a1,a2];
+      persist();
+      showScreen("welcome2");
+    }
+  });
+  return wrap;
+}
+
+function buildWelcome2() {
+  const wrap = document.createElement("div");
+  wrap.className = "screen";
+  wrap.innerHTML = `
+    <div class="screen-card" style="max-width:540px;text-align:center">
+      <div style="font-size:36px;margin-bottom:16px">🌿</div>
+      <p style="font-size:15px;color:#4a4035;line-height:1.7;margin-bottom:24px">
+        Thank you for trusting this space with your truth.<br><br>
+        What you shared is the foundation of everything we'll build together — slowly, intentionally, and on your terms.
+      </p>
+      <button class="btn" id="enter-btn">Enter Your Sanctuary →</button>
+    </div>`;
+  wrap.querySelector("#enter-btn").addEventListener("click", () => showScreen("main"));
+  return wrap;
+}
+
+// ─────────────────────────────────────────────
+// MAIN LAYOUT
+// ─────────────────────────────────────────────
+function buildMain() {
+  const layout = document.createElement("div");
+  layout.className = "app-layout";
+
+  // Sidebar
+  const sidebar = document.createElement("div");
+  sidebar.className = "sidebar";
+  sidebar.innerHTML = `<div style="font-size:22px">🌿</div><div class="sidebar-title">Peaceful Life</div>`;
+  SECTIONS.forEach(s => {
+    const btn = document.createElement("button");
+    btn.className = "nav-btn" + (s.id===currentSection?" active":"");
+    btn.dataset.id = s.id;
+    btn.innerHTML = `<span>${s.icon}</span>${s.label}`;
+    btn.addEventListener("click", () => showSection(s.id));
+    sidebar.appendChild(btn);
+  });
+  const spacer = document.createElement("div");
+  spacer.style.flex = "1";
+  sidebar.appendChild(spacer);
+  const backBtn = document.createElement("button");
+  backBtn.className = "nav-btn";
+  backBtn.style.color = "#b08060";
+  backBtn.textContent = "← Welcome";
+  backBtn.addEventListener("click", () => showScreen("welcome"));
+  sidebar.appendChild(backBtn);
+  layout.appendChild(sidebar);
+
+  // Content
+  const content = document.createElement("div");
+  content.className = "main-content";
+  content.id = "main-content";
+  content.appendChild(buildSection(currentSection));
+  layout.appendChild(content);
+  return layout;
+}
+
+function buildSection(id) {
+  if (id==="intention") return buildIntention();
+  if (id==="journal") return buildJournal();
+  if (id==="reframe") return buildReframe();
+  if (id==="wheel") return buildWheel();
+  if (id==="audit") return buildAudit();
+  if (id==="challenges") return buildChallenges();
+  if (id==="financial") return buildFinancial();
+  if (id==="memories") return buildMemories();
+  if (id==="reset") return buildReset();
+  if (id==="future") return buildFuture();
+  if (STATIC[id]) return buildStatic(id);
+  const d = document.createElement("div");
+  d.textContent = "Coming soon.";
+  return d;
+}
+
+// ─────────────────────────────────────────────
+// SECTION: DAILY INTENTION
+// ─────────────────────────────────────────────
+function buildIntention() {
+  const t = today();
+  if (!db.intentions) db.intentions = {};
+  if (!db.intentions[t]) db.intentions[t] = {word:"",focus:"",done:false,grateful:"",releasing:""};
+  const d = db.intentions[t];
+  const idx = (new Date().getDay() + new Date().getDate()) % WISDOM.length;
+
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <h2 class="stitle">🌅 Daily Intention</h2>
+    <div class="card-green">
+      <p style="font-size:13px;color:#5a6e52;font-style:italic;margin-bottom:4px">Today's Wisdom</p>
+      <p style="font-size:16px;color:#3a5a38;line-height:1.7">"${WISDOM[idx]}"</p>
+    </div>
+    <div class="card">
+      <label class="lbl" style="margin-top:0">Your one word for today</label>
+      <input id="int-word" class="field" type="text" placeholder="e.g. Grounded, Open, Brave, Still..." value="${d.word}" style="width:100%">
+      <label class="lbl">What is your gentle focus today?</label>
+      <textarea id="int-focus" class="field" style="height:90px;width:100%" placeholder="Today I will focus on...">${d.focus}</textarea>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+        <input type="checkbox" id="int-done" ${d.done?"checked":""} style="width:18px;height:18px">
+        <label for="int-done" style="font-size:14px;color:#5a6e52;cursor:pointer">I showed up for myself today</label>
+      </div>
+    </div>
+    <div class="card-warm">
+      <p style="font-size:13px;color:#9e7a5a;font-weight:600;margin-bottom:8px">🌿 Evening Reflection</p>
+      <label class="lbl" style="margin-top:0">One thing I'm grateful for today</label>
+      <input id="int-grat" class="field" type="text" placeholder="I'm grateful for..." value="${d.grateful||""}" style="width:100%">
+      <label class="lbl">One thing I'm releasing</label>
+      <input id="int-rel" class="field" type="text" placeholder="I'm releasing..." value="${d.releasing||""}" style="width:100%">
+    </div>`;
+
+  const save = () => { Object.assign(db.intentions[t], {
+    word: wrap.querySelector("#int-word").value,
+    focus: wrap.querySelector("#int-focus").value,
+    done: wrap.querySelector("#int-done").checked,
+    grateful: wrap.querySelector("#int-grat").value,
+    releasing: wrap.querySelector("#int-rel").value,
+  }); persist(); };
+
+  wrap.querySelectorAll("input,textarea").forEach(el => el.addEventListener("input", save));
+  wrap.querySelector("#int-done").addEventListener("change", save);
+  return wrap;
+}
+
+// ─────────────────────────────────────────────
+// SECTION: JOURNAL
+// ─────────────────────────────────────────────
+function buildJournal() {
+  if (!db.journal) db.journal = {};
+  let selDate = today();
+
+  const wrap = document.createElement("div");
+
+  function render() {
+    if (!db.journal[selDate]) db.journal[selDate] = {mood:"",text:""};
+    const e = db.journal[selDate];
+    const months = [...new Set(Object.keys(db.journal).map(d=>monthKey(d)))].sort().reverse();
+    const pastHTML = months.map(mo => {
+      const days = Object.keys(db.journal).filter(d=>monthKey(d)===mo).sort().reverse();
+      return `<p class="muted" style="margin:8px 0 4px;text-transform:uppercase;letter-spacing:1px">${mo}</p>` +
+        days.map(d=>`<div class="entry ${d===selDate?"active-entry":""}" data-date="${d}" style="cursor:pointer;${d===selDate?"background:#eef4ec;border-color:#5a8055":""}">
+          <div style="font-size:13px;color:#3a5a38;font-weight:600">${d}</div>
+          ${db.journal[d].mood?`<div style="font-size:12px;color:#7a9e7e">${db.journal[d].mood}</div>`:""}
+          ${db.journal[d].text?`<div style="font-size:12px;color:#a09880;margin-top:2px">${db.journal[d].text.slice(0,50)}...</div>`:""}
+        </div>`).join("");
+    }).join("");
+
+    wrap.innerHTML = `
+      <h2 class="stitle">📓 Daily Journal</h2>
+      <div class="two-col">
+        <div style="flex:1 1 280px">
+          <div class="card">
+            <label class="lbl" style="margin-top:0">Date</label>
+            <input id="j-date" type="date" class="field" value="${selDate}" style="width:100%;margin-bottom:12px">
+            <label class="lbl">How are you feeling?</label>
+            <div id="mood-row" style="margin-bottom:12px">
+              ${MOODS.map(m=>`<button class="btn-mood ${e.mood===m?"active":""}" data-mood="${m}">${m}</button>`).join("")}
+            </div>
+            <label class="lbl">Today's entry</label>
+            <textarea id="j-text" class="field" style="height:200px;width:100%" placeholder="Write freely. This space is yours...">${e.text}</textarea>
+            <p class="muted" style="margin-top:6px">Saved automatically.</p>
+          </div>
+        </div>
+        <div style="flex:1 1 180px;max-height:480px;overflow-y:auto">
+          <label class="lbl">Past Entries</label>
+          ${Object.keys(db.journal).length===0?'<p class="muted">No entries yet.</p>':pastHTML}
+        </div>
+      </div>`;
+
+    wrap.querySelector("#j-date").addEventListener("change", e => { selDate = e.target.value; render(); });
+    wrap.querySelector("#j-text").addEventListener("input", e => { db.journal[selDate].text = e.target.value; persist(); });
+    wrap.querySelectorAll(".btn-mood").forEach(b => b.addEventListener("click", () => {
+      db.journal[selDate].mood = b.dataset.mood; persist(); render();
+    }));
+    wrap.querySelectorAll("[data-date]").forEach(b => b.addEventListener("click", () => {
+      selDate = b.dataset.date; render();
+    }));
   }
+  render();
+  return wrap;
 }
 
-// ══════════════════════════════════════════════════════════
-// SECTION COMPONENTS
-// ══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// SECTION: MINDSET REFRAME
+// ─────────────────────────────────────────────
+function buildReframe() {
+  if (!db.reframes) db.reframes = [];
+  const wrap = document.createElement("div");
 
-// ── Daily Intention ───────────────────────────────────────
-function Intention({db,setDb}){
-  const today=todayStr();
-  const data=db.intentions||{};
-  const d=data[today]||{word:"",focus:"",done:false};
-  const dayIdx=new Date().getDay()+new Date().getDate();
-  const quote=WISDOM[dayIdx%WISDOM.length];
-  const save=(f,v)=>{const next={...db,intentions:{...data,[today]:{...d,[f]:v}}};setDb(next);saveDb(next);};
-  return(
-    <div>
-      <h2 style={sT}>🌅 Daily Intention</h2>
-      <div style={{...card2,borderLeft:"4px solid #7a9e7e",background:"#f0f5ee"}}>
-        <p style={{fontSize:13,color:"#5a6e52",fontStyle:"italic",marginBottom:4}}>Today's Wisdom</p>
-        <p style={{fontSize:16,color:"#3a5a38",lineHeight:1.7}}>"{quote}"</p>
-      </div>
-      <div style={card2}>
-        <label style={lbl}>Your one word for today</label>
-        <input style={inp} placeholder="e.g. Grounded, Open, Brave, Still..." value={d.word}
-          onChange={e=>save("word",e.target.value)}/>
-        <label style={{...lbl,marginTop:14}}>What is your gentle focus today?</label>
-        <textarea style={{...inp,height:90,resize:"vertical",marginBottom:10}}
-          placeholder="Today I will focus on..."
-          value={d.focus} onChange={e=>save("focus",e.target.value)}/>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <input type="checkbox" id="done" checked={d.done} onChange={e=>save("done",e.target.checked)}
-            style={{width:18,height:18,cursor:"pointer"}}/>
-          <label htmlFor="done" style={{fontSize:14,color:"#5a6e52",cursor:"pointer"}}>I showed up for myself today</label>
-        </div>
-      </div>
-      <div style={{...card2,background:"#faf0e8"}}>
-        <p style={{fontSize:13,color:"#9e7a5a",fontWeight:600,marginBottom:8}}>🌿 Evening Reflection</p>
-        <label style={lbl}>One thing I'm grateful for today</label>
-        <input style={inp} placeholder="I'm grateful for..."
-          value={d.grateful||""} onChange={e=>save("grateful",e.target.value)}/>
-        <label style={{...lbl,marginTop:12}}>One thing I'm releasing</label>
-        <input style={inp} placeholder="I'm releasing..."
-          value={d.releasing||""} onChange={e=>save("releasing",e.target.value)}/>
-      </div>
+  const historyHTML = () => db.reframes.length === 0 ? "" : `
+    <label class="lbl" style="margin-top:16px">Past Reframes</label>
+    ${db.reframes.slice().reverse().slice(0,5).map(r=>`
+      <div class="entry">
+        <p class="muted">${r.date}</p>
+        <p style="font-size:14px;color:#6a5e50;font-style:italic;margin-top:4px">"${r.thought}"</p>
+        <p style="font-size:14px;color:#3a3028;line-height:1.7;margin-top:8px">${r.response}</p>
+      </div>`).join("")}`;
+
+  wrap.innerHTML = `
+    <h2 class="stitle">🔄 Mindset Reframe</h2>
+    <p style="font-size:15px;color:#4a4035;line-height:1.7;margin-bottom:16px">Share a heavy thought or fear. Your wise guide will offer a new perspective.</p>
+    <div class="card">
+      <label class="lbl" style="margin-top:0">What thought is weighing on you?</label>
+      <textarea id="rf-text" class="field" style="height:100px;width:100%" placeholder="I keep thinking that... / I'm afraid that..."></textarea>
+      <button id="rf-btn" class="btn">Get a Perspective Shift ✨</button>
     </div>
-  );
-}
+    <div id="rf-response"></div>
+    <div id="rf-history">${historyHTML()}</div>`;
 
-// ── Journal ───────────────────────────────────────────────
-function Journal({db,setDb}){
-  const entries=db.journal||{};
-  const [sel,setSel]=useState(todayStr());
-  const e=entries[sel]||{mood:"",text:""};
-  const save=(f,v)=>{const next={...db,journal:{...entries,[sel]:{...e,[f]:v}}};setDb(next);saveDb(next);};
-  const months=[...new Set(Object.keys(entries).map(d=>monthKey(d)))].sort().reverse();
-  return(
-    <div>
-      <h2 style={sT}>📓 Daily Journal</h2>
-      <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
-        <div style={{flex:"1 1 280px"}}>
-          <div style={card2}>
-            <label style={lbl}>Date</label>
-            <input type="date" style={{...inp,marginBottom:12}} value={sel} onChange={ev=>setSel(ev.target.value)}/>
-            <label style={lbl}>How are you feeling?</label>
-            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
-              {MOODS.map(m=>(
-                <button key={m} onClick={()=>save("mood",m)}
-                  style={{padding:"5px 10px",borderRadius:20,border:"1.5px solid",fontSize:12,cursor:"pointer",background:e.mood===m?"#eef4ec":"#fff",borderColor:e.mood===m?"#5a8055":"#d8d0c4",color:e.mood===m?"#3a5a38":"#6a5e50"}}>
-                  {m}
-                </button>
-              ))}
-            </div>
-            <label style={lbl}>Today's entry</label>
-            <textarea style={{...inp,height:200,resize:"vertical"}} placeholder="Write freely. This space is yours..."
-              value={e.text} onChange={ev=>save("text",ev.target.value)}/>
-            <p style={{...mu,marginTop:6}}>Saved automatically.</p>
-          </div>
-        </div>
-        <div style={{flex:"1 1 180px",maxHeight:450,overflowY:"auto"}}>
-          <label style={lbl}>Past Entries</label>
-          {Object.keys(entries).length===0&&<p style={mu}>No entries yet.</p>}
-          {months.map(mo=>(
-            <div key={mo}>
-              <p style={{...mu,margin:"8px 0 4px",textTransform:"uppercase",letterSpacing:1}}>{mo}</p>
-              {Object.keys(entries).filter(d=>monthKey(d)===mo).sort().reverse().map(d=>(
-                <div key={d} onClick={()=>setSel(d)}
-                  style={{...entryBox,cursor:"pointer",background:sel===d?"#eef4ec":"#fff",borderColor:sel===d?"#5a8055":"#e4ddd4"}}>
-                  <div style={{fontSize:13,color:"#3a5a38",fontWeight:600}}>{d}</div>
-                  {entries[d].mood&&<div style={{fontSize:12,color:"#7a9e7e"}}>{entries[d].mood}</div>}
-                  {entries[d].text&&<div style={{fontSize:12,color:"#a09880",marginTop:2}}>{entries[d].text.slice(0,50)}...</div>}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Mindset Reframe ───────────────────────────────────────
-function Reframe({db,setDb}){
-  const [thought,setThought]=useState("");
-  const [response,setResponse]=useState("");
-  const [loading,setLoading]=useState(false);
-  const history=db.reframes||[];
-
-  const handleReframe=async()=>{
-    if(!thought.trim())return;
-    setLoading(true);
-    setResponse("");
-    const system=`You are a calm, wise, God-centered life mentor for adults 35-55 who are restructuring their lives for peace and purpose. When someone shares a heavy thought, limiting belief, or negative pattern, you:
-1. Acknowledge their feeling with warmth and without toxic positivity
-2. Gently offer a reframe — a new perspective that is honest, grounding, and hopeful
-3. End with one short, powerful truth they can carry with them
-Keep your response under 150 words. Speak like a trusted mentor, not a therapist. Never use bullet points.`;
-    const reply=await askClaude(system,`I've been thinking: "${thought}"`);
-    setResponse(reply);
-    setLoading(false);
-    const next={...db,reframes:[...history,{thought,response:reply,date:todayStr(),id:Date.now()}]};
-    setDb(next);saveDb(next);
-  };
-
-  return(
-    <div>
-      <h2 style={sT}>🔄 Mindset Reframe</h2>
-      <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:16}}>Share a heavy thought, a fear, or a story you keep telling yourself. Your wise guide will offer a new perspective.</p>
-      <div style={card2}>
-        <label style={lbl}>What thought is weighing on you?</label>
-        <textarea style={{...inp,height:100,resize:"vertical"}} placeholder="I keep thinking that... / I'm afraid that... / I feel like I'm..."
-          value={thought} onChange={e=>setThought(e.target.value)}/>
-        <button style={{...btnSm,marginTop:12,width:"100%",padding:"12px"}} onClick={handleReframe} disabled={loading}>
-          {loading?"Your guide is reflecting...":"Get a Perspective Shift ✨"}
-        </button>
-      </div>
-      {response&&(
-        <div style={{...card2,background:"#f0f5ee",borderLeft:"4px solid #7a9e7e"}}>
-          <p style={{fontSize:13,color:"#5a6e52",fontWeight:600,marginBottom:8}}>🌿 A Perspective for You</p>
-          <p style={{fontSize:15,color:"#3a3028",lineHeight:1.8}}>{response}</p>
-        </div>
-      )}
-      {history.length>0&&(
-        <div style={{marginTop:24}}>
-          <label style={lbl}>Past Reframes</label>
-          {history.slice().reverse().slice(0,5).map(r=>(
-            <div key={r.id} style={entryBox}>
-              <div style={mu}>{r.date}</div>
-              <p style={{fontSize:14,color:"#6a5e50",marginTop:4,fontStyle:"italic"}}>"{r.thought}"</p>
-              <p style={{fontSize:14,color:"#3a3028",lineHeight:1.7,marginTop:8}}>{r.response}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Life Wheel ────────────────────────────────────────────
-function LifeWheel({db,setDb}){
-  const scores=db.wheel||{};
-  const save=(area,val)=>{const next={...db,wheel:{...scores,[area]:val}};setDb(next);saveDb(next);};
-  const size=260,cx=130,cy=130,r=110;
-  const n=WHEEL_AREAS.length;
-  const pts=WHEEL_AREAS.map((a,i)=>{
-    const angle=(i/n)*2*Math.PI-Math.PI/2;
-    const score=(scores[a]||0)/10;
-    return{x:cx+r*score*Math.cos(angle),y:cy+r*score*Math.sin(angle),lx:cx+(r+28)*Math.cos(angle),ly:cy+(r+28)*Math.sin(angle),score:scores[a]||0,label:a,angle};
+  wrap.querySelector("#rf-btn").addEventListener("click", async () => {
+    const thought = wrap.querySelector("#rf-text").value.trim();
+    if (!thought) return;
+    const btn = wrap.querySelector("#rf-btn");
+    btn.textContent = "Your guide is reflecting...";
+    btn.disabled = true;
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,
+          system:"You are a calm, wise, God-centered life mentor for adults restructuring their lives for peace. When someone shares a heavy thought: 1) Acknowledge their feeling warmly 2) Offer a gentle honest reframe 3) End with one short powerful truth. Under 120 words. No bullet points.",
+          messages:[{role:"user",content:`I've been thinking: "${thought}"`}]})
+      });
+      const data = await res.json();
+      const reply = data.content?.[0]?.text || "You are seen. Take a breath — this too is part of your growth.";
+      db.reframes.push({thought,response:reply,date:today(),id:Date.now()});
+      persist();
+      wrap.querySelector("#rf-response").innerHTML = `
+        <div class="card-green">
+          <p style="font-size:13px;color:#5a6e52;font-weight:600;margin-bottom:8px">🌿 A Perspective for You</p>
+          <p style="font-size:15px;color:#3a3028;line-height:1.8">${reply}</p>
+        </div>`;
+      wrap.querySelector("#rf-history").innerHTML = historyHTML();
+      wrap.querySelector("#rf-text").value = "";
+    } catch(e) {
+      wrap.querySelector("#rf-response").innerHTML = `<div class="card-green"><p style="font-size:15px;color:#3a3028;line-height:1.8">You are seen. Take a breath — this too is part of your growth.</p></div>`;
+    }
+    btn.textContent = "Get a Perspective Shift ✨";
+    btn.disabled = false;
   });
-  const poly=pts.map(p=>`${p.x},${p.y}`).join(" ");
-  const gridLines=[2,4,6,8,10].map(s=>{
-    const gpts=WHEEL_AREAS.map((_,i)=>{const a=(i/n)*2*Math.PI-Math.PI/2;return`${cx+r*(s/10)*Math.cos(a)},${cy+r*(s/10)*Math.sin(a)}`;});
-    return gpts.join(" ");
-  });
-  const axes=WHEEL_AREAS.map((_,i)=>{const a=(i/n)*2*Math.PI-Math.PI/2;return{x2:cx+r*Math.cos(a),y2:cy+r*Math.sin(a)};});
-
-  return(
-    <div>
-      <h2 style={sT}>🎯 Life Wheel</h2>
-      <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:16}}>Rate each area of your life from 1–10. This is your honest snapshot — no judgment, just clarity.</p>
-      <div style={{display:"flex",gap:24,flexWrap:"wrap",alignItems:"flex-start"}}>
-        <div style={{flex:"0 0 auto"}}>
-          <svg width={size} height={size}>
-            {gridLines.map((pts,i)=><polygon key={i} points={pts} fill="none" stroke="#e0d8ce" strokeWidth="1"/>)}
-            {axes.map((a,i)=><line key={i} x1={cx} y1={cy} x2={a.x2} y2={a.y2} stroke="#e0d8ce" strokeWidth="1"/>)}
-            <polygon points={poly} fill="rgba(90,128,85,0.2)" stroke="#5a8055" strokeWidth="2"/>
-            {pts.map((p,i)=>(
-              <g key={i}>
-                <circle cx={p.x} cy={p.y} r="4" fill="#5a8055"/>
-                <text x={p.lx} y={p.ly} textAnchor="middle" dominantBaseline="middle"
-                  style={{fontSize:9,fill:"#5a6e52",fontFamily:"Georgia,serif"}}>{p.label.split(" ")[0]}</text>
-              </g>
-            ))}
-          </svg>
-        </div>
-        <div style={{flex:"1 1 200px"}}>
-          {WHEEL_AREAS.map(area=>(
-            <div key={area} style={{marginBottom:14}}>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                <label style={{fontSize:13,color:"#5a6e52",fontWeight:600}}>{area}</label>
-                <span style={{fontSize:13,color:"#3a5a38",fontWeight:700}}>{scores[area]||0}/10</span>
-              </div>
-              <input type="range" min="0" max="10" value={scores[area]||0}
-                onChange={e=>save(area,Number(e.target.value))}
-                style={{width:"100%",accentColor:"#5a8055"}}/>
-            </div>
-          ))}
-          <div style={{...card2,marginTop:8,background:"#f0f5ee"}}>
-            <p style={{fontSize:13,color:"#5a6e52"}}>Average score: <strong style={{color:"#3a5a38"}}>{WHEEL_AREAS.length>0?(WHEEL_AREAS.reduce((s,a)=>s+(scores[a]||0),0)/WHEEL_AREAS.length).toFixed(1):0}/10</strong></p>
-            <p style={{fontSize:12,color:"#a09880",marginTop:4}}>Which area is calling for your attention this season?</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return wrap;
 }
 
-// ── Monthly Audit ─────────────────────────────────────────
-function MonthlyAudit({db,setDb}){
-  const mo=monthKey(todayStr());
-  const audits=db.audits||{};
-  const audit=audits[mo]||{};
-  const save=(area,field,val)=>{
-    const next={...db,audits:{...audits,[mo]:{...audit,[area]:{...(audit[area]||{}),[field]:val}}}};
-    setDb(next);saveDb(next);
-  };
-  const overall=AUDIT_AREAS.reduce((s,a)=>s+toNum((audit[a]||{}).score),0)/AUDIT_AREAS.length;
+// ─────────────────────────────────────────────
+// SECTION: LIFE WHEEL
+// ─────────────────────────────────────────────
+function buildWheel() {
+  if (!db.wheel) db.wheel = {};
+  const wrap = document.createElement("div");
 
-  return(
-    <div>
-      <h2 style={sT}>📋 Monthly Life Audit</h2>
-      <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:4}}>A gentle check-in across all areas of your life.</p>
-      <p style={{...mu,marginBottom:16}}>Month: {mo} · Overall: {overall.toFixed(1)}/10</p>
-      {AUDIT_AREAS.map(area=>{
-        const a=audit[area]||{};
-        return(
-          <div key={area} style={{...entryBox,marginBottom:14}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <span style={{fontWeight:600,color:"#3a5a38",fontSize:15}}>{area}</span>
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <span style={{fontSize:13,color:"#a09880"}}>Score:</span>
-                <input type="number" min="1" max="10"
-                  style={{...inp,width:60,textAlign:"center",padding:"6px"}}
-                  value={a.score||""} onChange={e=>save(area,"score",e.target.value)}/>
-              </div>
-            </div>
-            <div style={prog}><div style={pBar(((a.score||0)/10)*100)}/></div>
-            <textarea style={{...inp,height:60,resize:"vertical",marginTop:10}}
-              placeholder={`How is your ${area} this month?`}
-              value={a.note||""} onChange={e=>save(area,"note",e.target.value)}/>
-            <input style={{...inp,marginTop:8}} placeholder="One gentle action I can take..."
-              value={a.action||""} onChange={e=>save(area,"action",e.target.value)}/>
+  function render() {
+    const scores = db.wheel;
+    const size=260,cx=130,cy=130,r=110,n=WHEEL_AREAS.length;
+    const gridLines = [2,4,6,8,10].map(s=>{
+      const pts = WHEEL_AREAS.map((_,i)=>{const a=(i/n)*2*Math.PI-Math.PI/2;return`${cx+r*(s/10)*Math.cos(a)},${cy+r*(s/10)*Math.sin(a)}`;}).join(" ");
+      return `<polygon points="${pts}" fill="none" stroke="#e0d8ce" stroke-width="1"/>`;
+    }).join("");
+    const axes = WHEEL_AREAS.map((_,i)=>{const a=(i/n)*2*Math.PI-Math.PI/2;return`<line x1="${cx}" y1="${cy}" x2="${cx+r*Math.cos(a)}" y2="${cy+r*Math.sin(a)}" stroke="#e0d8ce" stroke-width="1"/>`;}).join("");
+    const filledPts = WHEEL_AREAS.map((_,i)=>{const a=(i/n)*2*Math.PI-Math.PI/2;const sc=(scores[WHEEL_AREAS[i]]||0)/10;return`${cx+r*sc*Math.cos(a)},${cy+r*sc*Math.sin(a)}`;}).join(" ");
+    const dots = WHEEL_AREAS.map((area,i)=>{const a=(i/n)*2*Math.PI-Math.PI/2;const sc=(scores[area]||0)/10;return`<circle cx="${cx+r*sc*Math.cos(a)}" cy="${cy+r*sc*Math.sin(a)}" r="4" fill="#5a8055"/><text x="${cx+(r+28)*Math.cos(a)}" y="${cy+(r+28)*Math.sin(a)}" text-anchor="middle" dominant-baseline="middle" style="font-size:9px;fill:#5a6e52;font-family:Georgia,serif">${area.split(" ")[0]}</text>`;}).join("");
+    const avg = (WHEEL_AREAS.reduce((s,a)=>s+(scores[a]||0),0)/WHEEL_AREAS.length).toFixed(1);
+    const sliders = WHEEL_AREAS.map(area=>`
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <label style="font-size:13px;color:#5a6e52;font-weight:600">${area}</label>
+          <span style="font-size:13px;color:#3a5a38;font-weight:700">${scores[area]||0}/10</span>
+        </div>
+        <input type="range" min="0" max="10" value="${scores[area]||0}" data-area="${area}" style="width:100%;accent-color:#5a8055">
+      </div>`).join("");
+
+    wrap.innerHTML = `
+      <h2 class="stitle">🎯 Life Wheel</h2>
+      <p style="font-size:15px;color:#4a4035;line-height:1.7;margin-bottom:16px">Rate each area of your life from 1–10. Honest, no judgment — just clarity.</p>
+      <div class="wheel-wrap">
+        <svg width="${size}" height="${size}">${gridLines}${axes}<polygon points="${filledPts}" fill="rgba(90,128,85,0.2)" stroke="#5a8055" stroke-width="2"/>${dots}</svg>
+        <div style="flex:1 1 200px">
+          ${sliders}
+          <div class="card-green" style="margin-top:8px">
+            <p style="font-size:13px;color:#5a6e52">Average score: <strong style="color:#3a5a38">${avg}/10</strong></p>
+            <p class="muted" style="margin-top:4px">Which area is calling for your attention this season?</p>
           </div>
-        );
-      })}
-    </div>
-  );
+        </div>
+      </div>`;
+    wrap.querySelectorAll("input[type=range]").forEach(s => s.addEventListener("input", e => {
+      db.wheel[e.target.dataset.area] = Number(e.target.value); persist(); render();
+    }));
+  }
+  render();
+  return wrap;
 }
 
-// ── 30-Day Challenges ─────────────────────────────────────
-function Challenges({db,setDb}){
-  const data=db.challenges||{};
-  const active=data.active||null;
-  const progress=data.progress||{};
-  const ch=CHALLENGES.find(c=>c.id===active);
-  const days=Array.from({length:30},(_,i)=>i+1);
-  const start=(c)=>{const next={...db,challenges:{...data,active:c.id,startDate:todayStr(),progress:{}}};setDb(next);saveDb(next);};
-  const toggle=(day)=>{
-    const p={...progress,[day]:!progress[day]};
-    const next={...db,challenges:{...data,progress:p}};
-    setDb(next);saveDb(next);
-  };
-  const done=Object.values(progress).filter(Boolean).length;
-  const quit=()=>{const next={...db,challenges:{...data,active:null,progress:{}}};setDb(next);saveDb(next);};
+// ─────────────────────────────────────────────
+// SECTION: MONTHLY AUDIT
+// ─────────────────────────────────────────────
+function buildAudit() {
+  const mo = monthKey(today());
+  if (!db.audits) db.audits = {};
+  if (!db.audits[mo]) db.audits[mo] = {};
+  const audit = db.audits[mo];
 
-  return(
-    <div>
-      <h2 style={sT}>🌱 30-Day Growth Challenges</h2>
-      {!active?(
-        <div>
-          <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:16}}>Choose one challenge to focus on for the next 30 days. Small, intentional actions create transformation.</p>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:12}}>
-            {CHALLENGES.map(c=>(
-              <div key={c.id} style={{...entryBox,cursor:"pointer"}} onClick={()=>start(c)}>
-                <div style={{fontSize:24,marginBottom:8}}>{c.icon}</div>
-                <div style={{fontWeight:600,color:"#3a5a38",marginBottom:4}}>{c.title}</div>
-                <p style={{fontSize:13,color:"#6a5e50",lineHeight:1.6,marginBottom:12}}>{c.desc}</p>
-                <button style={{...btnSm,fontSize:12}}>Begin This Challenge</button>
-              </div>
-            ))}
-          </div>
+  const wrap = document.createElement("div");
+  const overall = (AUDIT_AREAS.reduce((s,a)=>s+toNum((audit[a]||{}).score),0)/AUDIT_AREAS.length).toFixed(1);
+  wrap.innerHTML = `
+    <h2 class="stitle">📋 Monthly Life Audit</h2>
+    <p style="font-size:15px;color:#4a4035;line-height:1.7;margin-bottom:4px">A gentle check-in across all areas of your life.</p>
+    <p class="muted" style="margin-bottom:16px">Month: ${mo} · Overall: ${overall}/10</p>
+    ${AUDIT_AREAS.map(area => {
+      const a = audit[area]||{};
+      const pct = ((a.score||0)/10)*100;
+      return `<div class="entry" style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-weight:600;color:#3a5a38;font-size:15px">${area}</span>
+          <input type="number" min="1" max="10" value="${a.score||""}" data-area="${area}" data-field="score"
+            style="width:60px;padding:6px;border:1.5px solid #d8d0c4;border-radius:8px;background:#faf8f5;text-align:center">
         </div>
-      ):(
-        <div>
-          <div style={{...card2,background:"#f0f5ee",borderLeft:"4px solid #7a9e7e"}}>
-            <div style={{fontSize:28,marginBottom:6}}>{ch.icon}</div>
-            <div style={{fontWeight:600,color:"#3a5a38",fontSize:16,marginBottom:4}}>{ch.title}</div>
-            <p style={{fontSize:14,color:"#5a6e52",lineHeight:1.7,marginBottom:12}}>{ch.desc}</p>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontSize:13,color:"#3a5a38",fontWeight:600}}>{done}/30 days complete</span>
-              <button style={{...btnD,fontSize:12}} onClick={quit}>End Challenge</button>
-            </div>
-            <div style={{...prog,marginTop:10,height:12}}><div style={pBar((done/30)*100)}/></div>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:8,marginTop:16}}>
-            {days.map(d=>(
-              <button key={d} onClick={()=>toggle(d)}
-                style={{padding:"10px 4px",borderRadius:10,border:"1.5px solid",fontSize:13,cursor:"pointer",background:progress[d]?"#5a8055":"#fff",borderColor:progress[d]?"#5a8055":"#d8d0c4",color:progress[d]?"#fff":"#6a5e50",fontWeight:progress[d]?"bold":"normal"}}>
-                {progress[d]?"✓":d}
-              </button>
-            ))}
-          </div>
-          {done===30&&(
-            <div style={{...card2,background:"#f0f5ee",marginTop:20,textAlign:"center"}}>
-              <div style={{fontSize:32,marginBottom:8}}>🎉</div>
-              <p style={{fontWeight:600,color:"#3a5a38",fontSize:16}}>You completed the challenge!</p>
-              <p style={{fontSize:14,color:"#6a5e50",marginTop:6}}>This is what becoming looks like. One day at a time.</p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
+        <div class="progress"><div class="progress-fill" style="width:${pct}%;background:#5a8055"></div></div>
+        <textarea data-area="${area}" data-field="note" class="field" style="height:60px;width:100%;margin-top:10px" placeholder="How is your ${area} this month?">${a.note||""}</textarea>
+        <input type="text" data-area="${area}" data-field="action" class="field" style="width:100%;margin-top:8px" placeholder="One gentle action I can take..." value="${a.action||""}">
+      </div>`;
+    }).join("")}`;
+
+  wrap.querySelectorAll("[data-area]").forEach(el => el.addEventListener("input", e => {
+    const area = e.target.dataset.area, field = e.target.dataset.field;
+    if (!db.audits[mo][area]) db.audits[mo][area] = {};
+    db.audits[mo][area][field] = e.target.value;
+    persist();
+    if (field==="score") {
+      const pct = (toNum(e.target.value)/10)*100;
+      const bar = e.target.closest(".entry").querySelector(".progress-fill");
+      if (bar) bar.style.width = pct+"%";
+    }
+  }));
+  return wrap;
 }
 
-// ── Financial ─────────────────────────────────────────────
-function Financial({db,setDb}){
-  const fin=db.financial||{income:[],expenses:[],savings:[],debts:[],budgets:{},note:""};
-  const up=next=>{const d={...db,financial:next};setDb(d);saveDb(d);};
-  const [incF,setIncF]=useState({source:"",amount:""});
-  const [expF,setExpF]=useState({name:"",category:"Food",amount:"",date:todayStr()});
-  const [savF,setSavF]=useState({name:"",target:"",saved:""});
-  const [debF,setDebF]=useState({name:"",total:"",paid:""});
-  const [bCat,setBCat]=useState("Food");
-  const [bAmt,setBAmt]=useState("");
-  const [tab,setTab]=useState("overview");
-  const tInc=fin.income.reduce((s,i)=>s+toNum(i.amount),0);
-  const tExp=fin.expenses.filter(e=>monthKey(e.date)===monthKey(todayStr())).reduce((s,e)=>s+toNum(e.amount),0);
-  const tSav=fin.savings.reduce((s,g)=>s+toNum(g.saved),0);
-  const tDebt=fin.debts.reduce((s,d)=>s+toNum(d.total)-toNum(d.paid),0);
-  const tabs=["overview","income","expenses","savings","debts","budget"];
-  return(
-    <div>
-      <h2 style={sT}>💰 Financial Calm</h2>
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
-        {tabs.map(t=>(
-          <button key={t} onClick={()=>setTab(t)}
-            style={{padding:"6px 13px",borderRadius:20,border:"1.5px solid",fontSize:12,cursor:"pointer",textTransform:"capitalize",background:tab===t?"#eef4ec":"#fff",borderColor:tab===t?"#5a8055":"#d8d0c4",color:tab===t?"#3a5a38":"#6a5e50"}}>
-            {t}
-          </button>
-        ))}
-      </div>
-      {tab==="overview"&&(<div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
-          {[["Monthly Income",fmt(tInc),"#4a6741"],["This Month Spent",fmt(tExp),"#c0645a"],["Total Saved",fmt(tSav),"#5a7a9e"],["Remaining Debt",fmt(tDebt),"#9e7a5a"]].map(([l,v,c])=>(
-            <div key={l} style={{...card2,textAlign:"center"}}><div style={{fontSize:20,fontWeight:700,color:c}}>{v}</div><div style={{fontSize:12,color:"#a09880"}}>{l}</div></div>
-          ))}
+// ─────────────────────────────────────────────
+// SECTION: 30-DAY CHALLENGES
+// ─────────────────────────────────────────────
+function buildChallenges() {
+  if (!db.challenges) db.challenges = {active:null,progress:{}};
+  const wrap = document.createElement("div");
+
+  function render() {
+    const {active, progress={}} = db.challenges;
+    const ch = CHALLENGES.find(c=>c.id===active);
+    const done = Object.values(progress).filter(Boolean).length;
+    if (!active) {
+      wrap.innerHTML = `
+        <h2 class="stitle">🌱 30-Day Growth Challenges</h2>
+        <p style="font-size:15px;color:#4a4035;line-height:1.7;margin-bottom:16px">Choose one challenge to focus on for 30 days. Small intentional actions create transformation.</p>
+        <div class="challenge-grid">
+          ${CHALLENGES.map(c=>`<div class="entry" style="cursor:pointer" data-cid="${c.id}">
+            <div style="font-size:24px;margin-bottom:8px">${c.icon}</div>
+            <div style="font-weight:600;color:#3a5a38;margin-bottom:4px">${c.title}</div>
+            <p style="font-size:13px;color:#6a5e50;line-height:1.6;margin-bottom:12px">${c.desc}</p>
+            <button class="btn-sm" data-cid="${c.id}">Begin This Challenge</button>
+          </div>`).join("")}
+        </div>`;
+      wrap.querySelectorAll("[data-cid]").forEach(el => el.addEventListener("click", e => {
+        const cid = parseInt(e.currentTarget.dataset.cid);
+        db.challenges = {active:cid, startDate:today(), progress:{}};
+        persist(); render();
+      }));
+    } else {
+      wrap.innerHTML = `
+        <h2 class="stitle">🌱 30-Day Growth Challenges</h2>
+        <div class="card-green">
+          <div style="font-size:28px;margin-bottom:6px">${ch.icon}</div>
+          <div style="font-weight:600;color:#3a5a38;font-size:16px;margin-bottom:4px">${ch.title}</div>
+          <p style="font-size:14px;color:#5a6e52;line-height:1.7;margin-bottom:12px">${ch.desc}</p>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:#3a5a38;font-weight:600">${done}/30 days complete</span>
+            <button class="btn-danger" id="quit-ch">End Challenge</button>
+          </div>
+          <div class="progress" style="margin-top:10px;height:12px"><div class="progress-fill" style="width:${(done/30)*100}%;background:#5a8055"></div></div>
         </div>
-        <div style={card2}><label style={lbl}>Financial Reflection</label>
-          <textarea style={{...inp,height:90,resize:"vertical"}} placeholder="How does money feel right now?"
-            value={fin.note} onChange={e=>up({...fin,note:e.target.value})}/></div>
-      </div>)}
-      {tab==="income"&&(<div>
-        <div style={card2}><label style={lbl}>Add Income Source</label>
-          <div style={{display:"flex",gap:8,marginBottom:8,flexWrap:"wrap"}}>
-            <input style={{...inp,flex:2,minWidth:120}} placeholder="Source" value={incF.source} onChange={e=>setIncF(p=>({...p,source:e.target.value}))}/>
-            <input style={{...inp,flex:1,minWidth:80}} placeholder="$/month" value={incF.amount} onChange={e=>setIncF(p=>({...p,amount:e.target.value}))}/>
-            <button style={btnSm} onClick={()=>{if(!incF.source||!incF.amount)return;up({...fin,income:[...fin.income,{...incF,id:Date.now()}]});setIncF({source:"",amount:""});}}>Add</button>
-          </div></div>
-        {fin.income.map(i=>(<div key={i.id} style={{...entryBox,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div><div style={{fontWeight:600,color:"#3a5a38"}}>{i.source}</div><div style={{fontSize:18,color:"#4a6741"}}>{fmt(i.amount)}<span style={{fontSize:12,color:"#a09880"}}>/mo</span></div></div>
-          <button style={btnD} onClick={()=>up({...fin,income:fin.income.filter(x=>x.id!==i.id)})}>Remove</button>
-        </div>))}
-        {fin.income.length>0&&<div style={{textAlign:"right",color:"#4a6741",fontWeight:700,marginTop:8}}>Total: {fmt(tInc)}/mo</div>}
-      </div>)}
-      {tab==="expenses"&&(<div>
-        <div style={card2}><label style={lbl}>Log an Expense</label>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-            <input style={inp} placeholder="Description" value={expF.name} onChange={e=>setExpF(p=>({...p,name:e.target.value}))}/>
-            <input style={inp} placeholder="Amount $" value={expF.amount} onChange={e=>setExpF(p=>({...p,amount:e.target.value}))}/>
-            <select style={inp} value={expF.category} onChange={e=>setExpF(p=>({...p,category:e.target.value}))}>{ECATS.map(c=><option key={c}>{c}</option>)}</select>
-            <input type="date" style={inp} value={expF.date} onChange={e=>setExpF(p=>({...p,date:e.target.value}))}/>
+        <div class="day-grid">
+          ${Array.from({length:30},(_,i)=>i+1).map(d=>`<button class="day-btn ${progress[d]?"done":""}" data-day="${d}">${progress[d]?"✓":d}</button>`).join("")}
+        </div>
+        ${done===30?`<div class="card-green" style="margin-top:20px;text-align:center"><div style="font-size:32px;margin-bottom:8px">🎉</div><p style="font-weight:600;color:#3a5a38;font-size:16px">You completed the challenge!</p><p style="font-size:14px;color:#6a5e50;margin-top:6px">This is what becoming looks like.</p></div>`:""}`;
+      wrap.querySelector("#quit-ch").addEventListener("click", () => { db.challenges={active:null,progress:{}}; persist(); render(); });
+      wrap.querySelectorAll(".day-btn").forEach(b => b.addEventListener("click", e => {
+        const day = e.target.dataset.day;
+        db.challenges.progress[day] = !db.challenges.progress[day];
+        persist(); render();
+      }));
+    }
+  }
+  render();
+  return wrap;
+}
+
+// ─────────────────────────────────────────────
+// SECTION: FINANCIAL
+// ─────────────────────────────────────────────
+function buildFinancial() {
+  if (!db.financial) db.financial = {income:[],expenses:[],savings:[],debts:[],budgets:{},note:""};
+  const wrap = document.createElement("div");
+
+  function render() {
+    const fin = db.financial;
+    const tInc=fin.income.reduce((s,i)=>s+toNum(i.amount),0);
+    const tExp=fin.expenses.filter(e=>monthKey(e.date)===monthKey(today())).reduce((s,e)=>s+toNum(e.amount),0);
+    const tSav=fin.savings.reduce((s,g)=>s+toNum(g.saved),0);
+    const tDebt=fin.debts.reduce((s,d)=>s+toNum(d.total)-toNum(d.paid),0);
+
+    const tabs = ["overview","income","expenses","savings","debts","budget"];
+    const tabBar = tabs.map(t=>`<button class="btn-tab ${finTab===t?"active":""}" data-tab="${t}">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`).join("");
+
+    let content = "";
+    if (finTab==="overview") {
+      content = `
+        <div class="grid2">
+          ${[["Monthly Income",fmt(tInc),"#4a6741"],["This Month Spent",fmt(tExp),"#c0645a"],["Total Saved",fmt(tSav),"#5a7a9e"],["Remaining Debt",fmt(tDebt),"#9e7a5a"]].map(([l,v,c])=>`<div class="card stat-box"><div style="font-size:20px;font-weight:700;color:${c}">${v}</div><div class="muted">${l}</div></div>`).join("")}
+        </div>
+        <div class="card">
+          <label class="lbl" style="margin-top:0">Financial Reflection</label>
+          <textarea id="fin-note" class="field" style="height:90px;width:100%" placeholder="How does money feel right now?">${fin.note}</textarea>
+        </div>`;
+    } else if (finTab==="income") {
+      content = `
+        <div class="card">
+          <label class="lbl" style="margin-top:0">Add Income Source</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <input id="inc-src" type="text" class="field" placeholder="Source (e.g. Job)" style="flex:2;min-width:120px" value="">
+            <input id="inc-amt" type="text" class="field" placeholder="$/month" style="flex:1;min-width:80px" value="">
+            <button class="btn-sm" id="inc-add">Add</button>
           </div>
-          <button style={btnSm} onClick={()=>{if(!expF.name||!expF.amount)return;up({...fin,expenses:[...fin.expenses,{...expF,id:Date.now()}]});setExpF({name:"",category:"Food",amount:"",date:todayStr()});}}>Add Expense</button></div>
-        <p style={{...mu,marginBottom:8}}>This month: {fmt(tExp)}</p>
-        {fin.expenses.slice().reverse().map(e=>(<div key={e.id} style={{...entryBox,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div><span style={{background:"#eef4ec",color:"#3a5a38",borderRadius:6,padding:"3px 9px",fontSize:12,fontWeight:600}}>{e.category}</span><div style={{fontWeight:600,marginTop:4}}>{e.name}</div><div style={mu}>{e.date}</div></div>
-          <div style={{textAlign:"right"}}><div style={{fontSize:17,color:"#c0645a",fontWeight:700}}>{fmt(e.amount)}</div><button style={{...btnD,marginTop:4}} onClick={()=>up({...fin,expenses:fin.expenses.filter(x=>x.id!==e.id)})}>Remove</button></div>
-        </div>))}
-      </div>)}
-      {tab==="savings"&&(<div>
-        <div style={card2}><label style={lbl}>Add Savings Goal</label>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
-            <input style={inp} placeholder="Goal name" value={savF.name} onChange={e=>setSavF(p=>({...p,name:e.target.value}))}/>
-            <input style={inp} placeholder="Target $" value={savF.target} onChange={e=>setSavF(p=>({...p,target:e.target.value}))}/>
-            <input style={inp} placeholder="Saved so far $" value={savF.saved} onChange={e=>setSavF(p=>({...p,saved:e.target.value}))}/>
+        </div>
+        ${fin.income.map(i=>`<div class="entry" style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-weight:600;color:#3a5a38">${i.source}</div><div style="font-size:18px;color:#4a6741">${fmt(i.amount)}<span class="muted">/mo</span></div></div>
+          <button class="btn-danger" data-del-inc="${i.id}">Remove</button>
+        </div>`).join("")}
+        ${fin.income.length>0?`<div style="text-align:right;color:#4a6741;font-weight:700;margin-top:8px">Total: ${fmt(tInc)}/mo</div>`:""}`;
+    } else if (finTab==="expenses") {
+      content = `
+        <div class="card">
+          <label class="lbl" style="margin-top:0">Log an Expense</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <input id="exp-name" type="text" class="field" placeholder="Description">
+            <input id="exp-amt" type="text" class="field" placeholder="Amount $">
+            <select id="exp-cat" class="field">${ECATS.map(c=>`<option>${c}</option>`).join("")}</select>
+            <input id="exp-date" type="date" class="field" value="${today()}">
           </div>
-          <button style={btnSm} onClick={()=>{if(!savF.name||!savF.target)return;up({...fin,savings:[...fin.savings,{...savF,id:Date.now()}]});setSavF({name:"",target:"",saved:""});}}>Add Goal</button></div>
-        {fin.savings.map(g=>{const pct=(toNum(g.saved)/toNum(g.target))*100;return(<div key={g.id} style={entryBox}>
-          <div style={{display:"flex",justifyContent:"space-between"}}><div style={{fontWeight:600,color:"#3a5a38"}}>{g.name}</div><button style={btnD} onClick={()=>up({...fin,savings:fin.savings.filter(x=>x.id!==g.id)})}>Remove</button></div>
-          <div style={{fontSize:13,color:"#a09880"}}>{fmt(g.saved)} of {fmt(g.target)} — {Math.round(pct)}%</div>
-          <div style={prog}><div style={pBar(pct,"#5a7a9e")}/></div>
-          <input style={{...inp,width:150,marginTop:8}} placeholder="Update saved $" onBlur={e=>{if(e.target.value){up({...fin,savings:fin.savings.map(x=>x.id===g.id?{...x,saved:e.target.value}:x)});e.target.value="";}}}/>
-        </div>);})}
-      </div>)}
-      {tab==="debts"&&(<div>
-        <div style={card2}><label style={lbl}>Add Debt</label>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
-            <input style={inp} placeholder="Debt name" value={debF.name} onChange={e=>setDebF(p=>({...p,name:e.target.value}))}/>
-            <input style={inp} placeholder="Total owed $" value={debF.total} onChange={e=>setDebF(p=>({...p,total:e.target.value}))}/>
-            <input style={inp} placeholder="Paid so far $" value={debF.paid} onChange={e=>setDebF(p=>({...p,paid:e.target.value}))}/>
+          <button class="btn-sm" id="exp-add">Add Expense</button>
+        </div>
+        <p class="muted" style="margin-bottom:8px">This month: ${fmt(tExp)}</p>
+        ${fin.expenses.slice().reverse().map(e=>`<div class="entry" style="display:flex;justify-content:space-between;align-items:center">
+          <div><span class="tag">${e.category}</span><div style="font-weight:600;margin-top:4px">${e.name}</div><div class="muted">${e.date}</div></div>
+          <div style="text-align:right"><div style="font-size:17px;color:#c0645a;font-weight:700">${fmt(e.amount)}</div><button class="btn-danger" style="margin-top:4px" data-del-exp="${e.id}">Remove</button></div>
+        </div>`).join("")}`;
+    } else if (finTab==="savings") {
+      content = `
+        <div class="card">
+          <label class="lbl" style="margin-top:0">Add Savings Goal</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+            <input id="sav-name" type="text" class="field" placeholder="Goal name">
+            <input id="sav-target" type="text" class="field" placeholder="Target $">
+            <input id="sav-saved" type="text" class="field" placeholder="Saved so far $">
           </div>
-          <button style={btnSm} onClick={()=>{if(!debF.name||!debF.total)return;up({...fin,debts:[...fin.debts,{...debF,id:Date.now()}]});setDebF({name:"",total:"",paid:""});}}>Add Debt</button></div>
-        {fin.debts.map(d=>{const pct=(toNum(d.paid)/toNum(d.total))*100;return(<div key={d.id} style={entryBox}>
-          <div style={{display:"flex",justifyContent:"space-between"}}><div style={{fontWeight:600,color:"#3a5a38"}}>{d.name}</div><button style={btnD} onClick={()=>up({...fin,debts:fin.debts.filter(x=>x.id!==d.id)})}>Remove</button></div>
-          <div style={{fontSize:13,color:"#a09880"}}>{fmt(toNum(d.total)-toNum(d.paid))} remaining — {Math.round(pct)}% paid</div>
-          <div style={prog}><div style={pBar(pct,"#9e7a5a")}/></div>
-          <input style={{...inp,width:160,marginTop:8}} placeholder="Update paid amount $" onBlur={e=>{if(e.target.value){up({...fin,debts:fin.debts.map(x=>x.id===d.id?{...x,paid:e.target.value}:x)});e.target.value="";}}}/>
-        </div>);})}
-      </div>)}
-      {tab==="budget"&&(<div>
-        <div style={card2}><label style={lbl}>Set Monthly Budget by Category</label>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
-            <select style={{...inp,flex:1,minWidth:120}} value={bCat} onChange={e=>setBCat(e.target.value)}>{ECATS.map(c=><option key={c}>{c}</option>)}</select>
-            <input style={{...inp,flex:1,minWidth:80}} placeholder="Budget $" value={bAmt} onChange={e=>setBAmt(e.target.value)}/>
-            <button style={btnSm} onClick={()=>{if(!bAmt)return;up({...fin,budgets:{...fin.budgets,[bCat]:bAmt}});setBAmt("");}}>Set</button>
-          </div></div>
-        {ECATS.filter(c=>fin.budgets[c]).map(c=>{
+          <button class="btn-sm" id="sav-add">Add Goal</button>
+        </div>
+        ${fin.savings.map(g=>{const pct=(toNum(g.saved)/toNum(g.target))*100;return`<div class="entry">
+          <div style="display:flex;justify-content:space-between"><div style="font-weight:600;color:#3a5a38">${g.name}</div><button class="btn-danger" data-del-sav="${g.id}">Remove</button></div>
+          <div class="muted">${fmt(g.saved)} of ${fmt(g.target)} — ${Math.round(pct)}%</div>
+          <div class="progress"><div class="progress-fill" style="width:${Math.min(pct,100)}%;background:#5a7a9e"></div></div>
+          <input type="text" class="field sav-update" data-sid="${g.id}" style="width:150px;margin-top:8px" placeholder="Update saved $">
+        </div>`;}).join("")}`;
+    } else if (finTab==="debts") {
+      content = `
+        <div class="card">
+          <label class="lbl" style="margin-top:0">Add Debt</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+            <input id="deb-name" type="text" class="field" placeholder="Debt name">
+            <input id="deb-total" type="text" class="field" placeholder="Total owed $">
+            <input id="deb-paid" type="text" class="field" placeholder="Paid so far $">
+          </div>
+          <button class="btn-sm" id="deb-add">Add Debt</button>
+        </div>
+        ${fin.debts.map(d=>{const pct=(toNum(d.paid)/toNum(d.total))*100;return`<div class="entry">
+          <div style="display:flex;justify-content:space-between"><div style="font-weight:600;color:#3a5a38">${d.name}</div><button class="btn-danger" data-del-deb="${d.id}">Remove</button></div>
+          <div class="muted">${fmt(toNum(d.total)-toNum(d.paid))} remaining — ${Math.round(pct)}% paid</div>
+          <div class="progress"><div class="progress-fill" style="width:${Math.min(pct,100)}%;background:#9e7a5a"></div></div>
+          <input type="text" class="field deb-update" data-did="${d.id}" style="width:160px;margin-top:8px" placeholder="Update paid amount $">
+        </div>`;}).join("")}`;
+    } else if (finTab==="budget") {
+      content = `
+        <div class="card">
+          <label class="lbl" style="margin-top:0">Set Monthly Budget by Category</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <select id="bud-cat" class="field" style="flex:1;min-width:120px">${ECATS.map(c=>`<option>${c}</option>`).join("")}</select>
+            <input id="bud-amt" type="text" class="field" placeholder="Budget $" style="flex:1;min-width:80px">
+            <button class="btn-sm" id="bud-set">Set</button>
+          </div>
+        </div>
+        ${ECATS.filter(c=>fin.budgets[c]).map(c=>{
           const budget=toNum(fin.budgets[c]);
-          const spent=fin.expenses.filter(e=>e.category===c&&monthKey(e.date)===monthKey(todayStr())).reduce((s,e)=>s+toNum(e.amount),0);
-          const pct=(spent/budget)*100;const over=pct>100;
-          return(<div key={c} style={entryBox}>
-            <div style={{display:"flex",justifyContent:"space-between"}}><span style={{background:"#eef4ec",color:"#3a5a38",borderRadius:6,padding:"3px 9px",fontSize:12,fontWeight:600}}>{c}</span><span style={{fontSize:13,color:over?"#c0645a":"#4a6741",fontWeight:600}}>{fmt(spent)} / {fmt(budget)}</span></div>
-            <div style={prog}><div style={pBar(pct,over?"#c0645a":"#5a8055")}/></div>
-            {over&&<div style={{fontSize:12,color:"#c0645a",marginTop:4}}>Over budget by {fmt(spent-budget)}</div>}
-          </div>);
-        })}
-      </div>)}
-    </div>
-  );
+          const spent=fin.expenses.filter(e=>e.category===c&&monthKey(e.date)===monthKey(today())).reduce((s,e)=>s+toNum(e.amount),0);
+          const pct=(spent/budget)*100; const over=pct>100;
+          return`<div class="entry"><div style="display:flex;justify-content:space-between"><span class="tag">${c}</span><span style="font-size:13px;color:${over?"#c0645a":"#4a6741"};font-weight:600">${fmt(spent)} / ${fmt(budget)}</span></div><div class="progress"><div class="progress-fill" style="width:${Math.min(pct,100)}%;background:${over?"#c0645a":"#5a8055"}"></div></div>${over?`<div style="font-size:12px;color:#c0645a;margin-top:4px">Over budget by ${fmt(spent-budget)}</div>`:""}</div>`;
+        }).join("")}`;
+    }
+
+    wrap.innerHTML = `<h2 class="stitle">💰 Financial Calm</h2><div style="margin-bottom:16px">${tabBar}</div>${content}`;
+
+    wrap.querySelectorAll(".btn-tab").forEach(b => b.addEventListener("click", e => { finTab=e.target.dataset.tab; render(); }));
+
+    // Overview
+    const finNote = wrap.querySelector("#fin-note");
+    if (finNote) finNote.addEventListener("input", e => { db.financial.note=e.target.value; persist(); });
+
+    // Income
+    const incAdd = wrap.querySelector("#inc-add");
+    if (incAdd) incAdd.addEventListener("click", () => {
+      const src=wrap.querySelector("#inc-src").value.trim(), amt=wrap.querySelector("#inc-amt").value.trim();
+      if(!src||!amt)return;
+      db.financial.income.push({source:src,amount:amt,id:Date.now()});
+      persist(); render();
+    });
+    wrap.querySelectorAll("[data-del-inc]").forEach(b=>b.addEventListener("click",e=>{db.financial.income=db.financial.income.filter(x=>x.id!==parseInt(e.target.dataset.delInc));persist();render();}));
+
+    // Expenses
+    const expAdd = wrap.querySelector("#exp-add");
+    if (expAdd) expAdd.addEventListener("click", () => {
+      const name=wrap.querySelector("#exp-name").value.trim(),amt=wrap.querySelector("#exp-amt").value.trim(),cat=wrap.querySelector("#exp-cat").value,date=wrap.querySelector("#exp-date").value;
+      if(!name||!amt)return;
+      db.financial.expenses.push({name,amount:amt,category:cat,date,id:Date.now()});
+      persist(); render();
+    });
+    wrap.querySelectorAll("[data-del-exp]").forEach(b=>b.addEventListener("click",e=>{db.financial.expenses=db.financial.expenses.filter(x=>x.id!==parseInt(e.target.dataset.delExp));persist();render();}));
+
+    // Savings
+    const savAdd = wrap.querySelector("#sav-add");
+    if (savAdd) savAdd.addEventListener("click", () => {
+      const name=wrap.querySelector("#sav-name").value.trim(),target=wrap.querySelector("#sav-target").value.trim(),saved=wrap.querySelector("#sav-saved").value.trim();
+      if(!name||!target)return;
+      db.financial.savings.push({name,target,saved,id:Date.now()});
+      persist(); render();
+    });
+    wrap.querySelectorAll("[data-del-sav]").forEach(b=>b.addEventListener("click",e=>{db.financial.savings=db.financial.savings.filter(x=>x.id!==parseInt(e.target.dataset.delSav));persist();render();}));
+    wrap.querySelectorAll(".sav-update").forEach(inp=>inp.addEventListener("blur",e=>{if(!e.target.value)return;const id=parseInt(e.target.dataset.sid);db.financial.savings=db.financial.savings.map(x=>x.id===id?{...x,saved:e.target.value}:x);persist();render();}));
+
+    // Debts
+    const debAdd = wrap.querySelector("#deb-add");
+    if (debAdd) debAdd.addEventListener("click", () => {
+      const name=wrap.querySelector("#deb-name").value.trim(),total=wrap.querySelector("#deb-total").value.trim(),paid=wrap.querySelector("#deb-paid").value.trim();
+      if(!name||!total)return;
+      db.financial.debts.push({name,total,paid,id:Date.now()});
+      persist(); render();
+    });
+    wrap.querySelectorAll("[data-del-deb]").forEach(b=>b.addEventListener("click",e=>{db.financial.debts=db.financial.debts.filter(x=>x.id!==parseInt(e.target.dataset.delDeb));persist();render();}));
+    wrap.querySelectorAll(".deb-update").forEach(inp=>inp.addEventListener("blur",e=>{if(!e.target.value)return;const id=parseInt(e.target.dataset.did);db.financial.debts=db.financial.debts.map(x=>x.id===id?{...x,paid:e.target.value}:x);persist();render();}));
+
+    // Budget
+    const budSet = wrap.querySelector("#bud-set");
+    if (budSet) budSet.addEventListener("click", () => {
+      const cat=wrap.querySelector("#bud-cat").value,amt=wrap.querySelector("#bud-amt").value.trim();
+      if(!amt)return;
+      db.financial.budgets[cat]=amt;
+      persist(); render();
+    });
+  }
+  render();
+  return wrap;
 }
 
-// ══════════════════════════════════════════════════════════
-// MAIN APP
-// ══════════════════════════════════════════════════════════
-function App(){
-  const [screen,setScreen]=useState("license");
-  const [licIn,setLicIn]=useState("");
-  const [licErr,setLicErr]=useState("");
-  const [active,setActive]=useState("intention");
-  const [wA,setWA]=useState(["","",""]);
-  const [wDone,setWDone]=useState(false);
-  const [db,setDb]=useState(loadDb);
-
-  const save=(next)=>{setDb(next);saveDb(next);};
-
-  const handleLic=()=>{
-    const k=licIn.trim().toUpperCase();
-    if(LICENSE_KEYS.includes(k)||k.length>=8){setScreen("welcome");setLicErr("");}
-    else setLicErr("License key not recognized. Please check your Gumroad purchase email.");
-  };
-
-  if(screen==="license")return(
-    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#f2ede6,#e8f0e4)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div style={{background:"#fff",borderRadius:20,padding:"48px 40px",width:"100%",maxWidth:460,boxShadow:"0 8px 40px rgba(100,120,80,.10)"}}>
-        <div style={{textAlign:"center",marginBottom:28}}>
-          <div style={{fontSize:38,marginBottom:10}}>🌿</div>
-          <h1 style={{fontSize:26,color:"#3a5a38",margin:"0 0 8px",fontWeight:"normal"}}>Peaceful Life Planner</h1>
-          <p style={{fontSize:13,color:"#8a9880"}}>A sanctuary for your next season.</p>
-        </div>
-        <label style={lbl}>Enter Your License Key</label>
-        <p style={{...mu,marginBottom:10}}>From your Gumroad purchase email</p>
-        <input style={inp} placeholder="e.g. PEACE-XXXX-XXXX" value={licIn}
-          onChange={e=>setLicIn(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLic()}/>
-        {licErr&&<p style={{color:"#c0645a",fontSize:12,marginTop:6}}>{licErr}</p>}
-        <button style={{display:"block",width:"100%",marginTop:16,padding:"13px",background:"#5a8055",color:"#fff",border:"none",borderRadius:12,fontSize:15,cursor:"pointer"}} onClick={handleLic}>Enter App →</button>
-        <p style={{...mu,textAlign:"center",marginTop:16}}>Don't have a key? <a href="https://gumroad.com" target="_blank" style={{color:"#7a9e7e"}}>Purchase on Gumroad</a></p>
+// ─────────────────────────────────────────────
+// SECTION: MEMORIES
+// ─────────────────────────────────────────────
+function buildMemories() {
+  if (!db.memories) db.memories = [];
+  const wrap = document.createElement("div");
+  function render() {
+    wrap.innerHTML = `
+      <h2 class="stitle">📖 Memory Keeper</h2>
+      <div class="card">
+        <input id="mem-title" type="text" class="field" placeholder="Memory title..." style="width:100%;margin-bottom:8px">
+        <input id="mem-date" type="date" class="field" value="${today()}" style="width:100%;margin-bottom:8px">
+        <textarea id="mem-note" class="field" style="height:80px;width:100%;margin-bottom:10px" placeholder="What made this moment special..."></textarea>
+        <button class="btn-sm" id="mem-save">Save Memory</button>
       </div>
-    </div>
-  );
-
-  if(screen==="welcome")return(
-    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#f2ede6,#e8f0e4)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div style={{background:"#fff",borderRadius:20,padding:"48px 40px",width:"100%",maxWidth:540,boxShadow:"0 8px 40px rgba(100,120,80,.10)"}}>
-        <div style={{fontSize:32,textAlign:"center",marginBottom:14}}>🌿</div>
-        {!wDone?(
-          <>
-            <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:20}}>Welcome. This season of your life is about <em>peace, clarity, and intention</em> — not rushing or proving anything.<br/><br/><span style={{color:"#a09880"}}>Answer only what feels easy:</span></p>
-            {["What does a peaceful life feel like to you?","What feels most out of alignment right now?","What are you protecting your peace from in this season?"].map((q,i)=>(
-              <div key={i} style={{marginBottom:14}}>
-                <label style={lbl}>{i+1}. {q}</label>
-                <textarea style={{...inp,height:64,resize:"vertical"}} placeholder="Take your time..."
-                  value={wA[i]} onChange={e=>{const a=[...wA];a[i]=e.target.value;setWA(a);}}/>
-              </div>
-            ))}
-            <button style={{display:"block",width:"100%",marginTop:16,padding:"13px",background:"#5a8055",color:"#fff",border:"none",borderRadius:12,fontSize:15,cursor:"pointer"}}
-              onClick={()=>{if(wA.some(a=>a.trim()))setWDone(true);}}>Begin My Journey →</button>
-          </>
-        ):(
-          <div style={{textAlign:"center"}}>
-            <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:20}}>Thank you for trusting this space. What you shared is the foundation of everything we'll build — slowly, intentionally, on your terms.</p>
-            <button style={{display:"block",width:"100%",marginTop:16,padding:"13px",background:"#5a8055",color:"#fff",border:"none",borderRadius:12,fontSize:15,cursor:"pointer"}}
-              onClick={()=>setScreen("main")}>Enter Your Sanctuary →</button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderSection=()=>{
-    if(active==="intention")return<Intention db={db} setDb={save}/>;
-    if(active==="journal")return<Journal db={db} setDb={save}/>;
-    if(active==="reframe")return<Reframe db={db} setDb={save}/>;
-    if(active==="wheel")return<LifeWheel db={db} setDb={save}/>;
-    if(active==="audit")return<MonthlyAudit db={db} setDb={save}/>;
-    if(active==="challenges")return<Challenges db={db} setDb={save}/>;
-    if(active==="financial")return<Financial db={db} setDb={save}/>;
-
-    if(active==="memories"){
-      const mems=db.memories||[];
-      const [dr,setDr]=useState({title:"",note:"",date:todayStr()});
-      return(<div><h2 style={sT}>📖 Memory Keeper</h2>
-        <div style={card2}>
-          <input style={inp} placeholder="Memory title..." value={dr.title} onChange={e=>setDr(p=>({...p,title:e.target.value}))}/>
-          <input type="date" style={{...inp,marginTop:8}} value={dr.date} onChange={e=>setDr(p=>({...p,date:e.target.value}))}/>
-          <textarea style={{...inp,height:80,marginTop:8,resize:"vertical"}} placeholder="What made this moment special..."
-            value={dr.note} onChange={e=>setDr(p=>({...p,note:e.target.value}))}/>
-          <button style={{...btnSm,marginTop:10}} onClick={()=>{if(!dr.title)return;save({...db,memories:[...mems,{...dr,id:Date.now()}]});setDr({title:"",note:"",date:todayStr()});}}>Save Memory</button>
-        </div>
-        {mems.slice().reverse().map(m=>(<div key={m.id} style={entryBox}><div style={{fontWeight:600,color:"#4a6741"}}>{m.title}</div>{m.date&&<div style={mu}>{m.date}</div>}{m.note&&<div style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:5}}>{m.note}</div></div>))}
-      </div>);
-    }
-
-    if(active==="reset"){
-      const rs=db.resets||[];
-      const [dr,setDr]=useState({wins:"",release:"",intention:""});
-      return(<div><h2 style={sT}>🌙 Weekly Reset</h2>
-        <div style={card2}>
-          {[["wins","What went well this week?"],["release","What am I releasing without guilt?"],["intention","My gentle intention for next week..."]].map(([k,l])=>(
-            <div key={k} style={{marginBottom:12}}><label style={lbl}>{l}</label>
-              <textarea style={{...inp,height:64,resize:"vertical"}} value={dr[k]} onChange={e=>setDr(p=>({...p,[k]:e.target.value}))}/></div>
-          ))}
-          <button style={btnSm} onClick={()=>{if(!dr.wins&&!dr.release&&!dr.intention)return;save({...db,resets:[...rs,{...dr,date:todayStr(),id:Date.now()}]});setDr({wins:"",release:"",intention:""});}}>Save Reset</button>
-        </div>
-        {rs.slice().reverse().map(r=>(<div key={r.id} style={entryBox}><div style={mu}>{r.date}</div>
-          {r.wins&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:6}}><strong>Wins:</strong> {r.wins}</p>}
-          {r.release&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:4}}><strong>Released:</strong> {r.release}</p>}
-          {r.intention&&<p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:4}}><strong>Intention:</strong> {r.intention}</p>}
-        </div>))}
-      </div>);
-    }
-
-    if(active==="future"){
-      const lts=db.letters||[];
-      const [dr,setDr]=useState("");
-      return(<div><h2 style={sT}>💌 Future Self Letters</h2>
-        <div style={card2}>
-          <textarea style={{...inp,height:160,resize:"vertical"}} placeholder="Dear future me..." value={dr} onChange={e=>setDr(e.target.value)}/>
-          <button style={{...btnSm,marginTop:10}} onClick={()=>{if(!dr.trim())return;save({...db,letters:[...lts,{text:dr,date:todayStr(),id:Date.now()}]});setDr("");}}>Seal This Letter</button>
-        </div>
-        {lts.slice().reverse().map(l=>(<div key={l.id} style={entryBox}><div style={mu}>Written on {l.date}</div><p style={{fontSize:14,color:"#4a4035",lineHeight:1.7,marginTop:6}}>{l.text}</p></div>))}
-      </div>);
-    }
-
-    const sc=SC[active];
-    if(!sc)return null;
-    const note=db[`note_${active}`]||"";
-    return(<div><h2 style={sT}>{sc.h}</h2>
-      <p style={{fontSize:15,color:"#4a4035",lineHeight:1.7,marginBottom:16}}>{sc.p}</p>
-      <textarea style={{...inp,height:200,resize:"vertical"}} placeholder={sc.ph}
-        value={note} onChange={e=>save({...db,[`note_${active}`]:e.target.value})}/>
-      <p style={{...mu,marginTop:6}}>Saved automatically.</p>
-    </div>);
-  };
-
-  return(
-    <div style={{display:"flex",minHeight:"100vh",background:"#f2ede6"}}>
-      <div style={{width:210,background:"#fff",borderRight:"1px solid #e8e0d4",padding:"28px 14px",display:"flex",flexDirection:"column",gap:2,minHeight:"100vh",overflowY:"auto"}}>
-        <div style={{fontSize:22,marginBottom:2}}>🌿</div>
-        <div style={{fontSize:10,color:"#a09080",marginBottom:20,textTransform:"uppercase",letterSpacing:1}}>Peaceful Life</div>
-        {SECTIONS.map(s=>(
-          <button key={s.id} onClick={()=>setActive(s.id)}
-            style={{width:"100%",textAlign:"left",background:active===s.id?"#eef4ec":"none",border:"none",padding:"9px 11px",borderRadius:9,fontSize:13,color:active===s.id?"#3a5a38":"#6a5e50",cursor:"pointer",display:"flex",alignItems:"center",fontWeight:active===s.id?"bold":"normal"}}>
-            <span style={{marginRight:7}}>{s.icon}</span>{s.label}
-          </button>
-        ))}
-        <div style={{flex:1}}/>
-        <button style={{width:"100%",textAlign:"left",background:"none",border:"none",padding:"9px 11px",borderRadius:9,fontSize:13,color:"#b08060",cursor:"pointer"}} onClick={()=>setScreen("welcome")}>← Welcome</button>
-      </div>
-      <div style={{flex:1,padding:"40px 36px",maxWidth:780,margin:"0 auto",overflowY:"auto"}}>
-        {renderSection()}
-      </div>
-    </div>
-  );
+      ${db.memories.slice().reverse().map(m=>`<div class="entry"><div style="font-weight:600;color:#4a6741">${m.title}</div>${m.date?`<div class="muted">${m.date}</div>`:""} ${m.note?`<p style="font-size:14px;color:#4a4035;line-height:1.7;margin-top:5px">${m.note}</p>`:""}</div>`).join("")}`;
+    wrap.querySelector("#mem-save").addEventListener("click",()=>{
+      const title=wrap.querySelector("#mem-title").value.trim();
+      if(!title)return;
+      db.memories.push({title,date:wrap.querySelector("#mem-date").value,note:wrap.querySelector("#mem-note").value,id:Date.now()});
+      persist(); render();
+    });
+  }
+  render();
+  return wrap;
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+// ─────────────────────────────────────────────
+// SECTION: WEEKLY RESET
+// ─────────────────────────────────────────────
+function buildReset() {
+  if (!db.resets) db.resets = [];
+  const wrap = document.createElement("div");
+  function render() {
+    wrap.innerHTML = `
+      <h2 class="stitle">🌙 Weekly Reset</h2>
+      <div class="card">
+        <label class="lbl" style="margin-top:0">What went well this week?</label>
+        <textarea id="rs-wins" class="field" style="height:64px;width:100%;margin-bottom:10px"></textarea>
+        <label class="lbl" style="margin-top:0">What am I releasing without guilt?</label>
+        <textarea id="rs-release" class="field" style="height:64px;width:100%;margin-bottom:10px"></textarea>
+        <label class="lbl" style="margin-top:0">My gentle intention for next week...</label>
+        <textarea id="rs-int" class="field" style="height:64px;width:100%;margin-bottom:10px"></textarea>
+        <button class="btn-sm" id="rs-save">Save Reset</button>
+      </div>
+      ${db.resets.slice().reverse().map(r=>`<div class="entry"><p class="muted">${r.date}</p>${r.wins?`<p style="font-size:14px;color:#4a4035;line-height:1.7;margin-top:6px"><strong>Wins:</strong> ${r.wins}</p>`:""} ${r.release?`<p style="font-size:14px;color:#4a4035;line-height:1.7;margin-top:4px"><strong>Released:</strong> ${r.release}</p>`:""} ${r.intention?`<p style="font-size:14px;color:#4a4035;line-height:1.7;margin-top:4px"><strong>Intention:</strong> ${r.intention}</p>`:""}</div>`).join("")}`;
+    wrap.querySelector("#rs-save").addEventListener("click",()=>{
+      const wins=wrap.querySelector("#rs-wins").value.trim(),release=wrap.querySelector("#rs-release").value.trim(),intention=wrap.querySelector("#rs-int").value.trim();
+      if(!wins&&!release&&!intention)return;
+      db.resets.push({wins,release,intention,date:today(),id:Date.now()});
+      persist(); render();
+    });
+  }
+  render();
+  return wrap;
+}
+
+// ─────────────────────────────────────────────
+// SECTION: FUTURE LETTERS
+// ─────────────────────────────────────────────
+function buildFuture() {
+  if (!db.letters) db.letters = [];
+  const wrap = document.createElement("div");
+  function render() {
+    wrap.innerHTML = `
+      <h2 class="stitle">💌 Future Self Letters</h2>
+      <p style="font-size:15px;color:#4a4035;line-height:1.7;margin-bottom:16px">Write a letter to yourself 6 months, 1 year, or 5 years from now.</p>
+      <div class="card">
+        <textarea id="lt-text" class="field" style="height:160px;width:100%;margin-bottom:10px" placeholder="Dear future me..."></textarea>
+        <button class="btn-sm" id="lt-save">Seal This Letter</button>
+      </div>
+      ${db.letters.slice().reverse().map(l=>`<div class="entry"><p class="muted">Written on ${l.date}</p><p style="font-size:14px;color:#4a4035;line-height:1.7;margin-top:6px">${l.text}</p></div>`).join("")}`;
+    wrap.querySelector("#lt-save").addEventListener("click",()=>{
+      const text=wrap.querySelector("#lt-text").value.trim();
+      if(!text)return;
+      db.letters.push({text,date:today(),id:Date.now()});
+      persist(); render();
+    });
+  }
+  render();
+  return wrap;
+}
+
+// ─────────────────────────────────────────────
+// SECTION: STATIC NOTES
+// ─────────────────────────────────────────────
+function buildStatic(id) {
+  const sc = STATIC[id];
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <h2 class="stitle">${sc.h}</h2>
+    <p style="font-size:15px;color:#4a4035;line-height:1.7;margin-bottom:16px">${sc.p}</p>
+    <textarea id="static-ta" class="field" style="height:200px;width:100%" placeholder="${sc.ph}">${db[`note_${id}`]||""}</textarea>
+    <p class="muted" style="margin-top:6px">Saved automatically.</p>`;
+  wrap.querySelector("#static-ta").addEventListener("input", e => { db[`note_${id}`]=e.target.value; persist(); });
+  return wrap;
+}
+
+// ─────────────────────────────────────────────
+// START
+// ─────────────────────────────────────────────
+showScreen("welcome");
 </script>
 </body>
 </html>
